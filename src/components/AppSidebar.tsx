@@ -16,7 +16,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 
-const mainItems = [
+const staffItems = [
+  { title: 'Home', url: '/home', icon: Home },
+  { title: 'Inventory', url: '/inventory', icon: Package },
+  { title: 'Sales/POS', url: '/pos', icon: ShoppingCart },
+];
+
+const adminMainItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Inventory', url: '/inventory', icon: Package },
   { title: 'Sales/POS', url: '/pos', icon: ShoppingCart },
@@ -40,7 +46,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {(isAdmin ? adminMainItems : staffItems).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink

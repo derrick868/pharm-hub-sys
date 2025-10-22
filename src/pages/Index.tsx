@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Pill } from 'lucide-react';
@@ -6,14 +6,35 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (session) {
-        navigate('/dashboard');
+        // Check user role
+        const { data: roles } = await (supabase as any)
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id);
+
+        const isAdmin = roles?.some((r: any) => r.role === 'admin');
+        navigate(isAdmin ? '/dashboard' : '/home');
       }
-    });
+      setChecking(false);
+    };
+
+    checkSession();
   }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">
