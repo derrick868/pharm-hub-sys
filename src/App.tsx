@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
 import POS from "./pages/POS";
+import Suppliers from "./pages/Suppliers";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { AdminRoute } from "./components/AdminRoute";
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/dashboard" element={<AdminRoute><DashboardLayout><Dashboard /></DashboardLayout></AdminRoute>} />
           <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />
           <Route path="/pos" element={<DashboardLayout><POS /></DashboardLayout>} />
+          <Route path="/suppliers" element={<AdminRoute><DashboardLayout><Suppliers /></DashboardLayout></AdminRoute>} />
+          <Route path="/reports" element={<AdminRoute><DashboardLayout><Reports /></DashboardLayout></AdminRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
