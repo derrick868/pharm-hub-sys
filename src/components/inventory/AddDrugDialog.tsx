@@ -9,9 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 interface AddDrugDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export const AddDrugDialog = ({ open, onOpenChange }: AddDrugDialogProps) => {
+export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
@@ -60,6 +61,7 @@ export const AddDrugDialog = ({ open, onOpenChange }: AddDrugDialogProps) => {
         expiryDate: '',
       });
       onOpenChange(false);
+      onSuccess?.();
     }
 
     setLoading(false);

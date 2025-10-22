@@ -1,12 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 import { AddDrugDialog } from '@/components/inventory/AddDrugDialog';
+import { DrugTable } from '@/components/inventory/DrugTable';
+import { supabase } from '@/integrations/supabase/client';
 
 const Inventory = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [drugs, setDrugs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDrugs = async () => {
+    setLoading(true);
+    const { data, error } = await (supabase as any)
+      .from('drugs')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching drugs:', error);
+    } else {
+      setDrugs(data || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchDrugs();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -33,11 +56,25 @@ const Inventory = () => {
         </div>
       </div>
 
-      <div className="border rounded-lg p-8 text-center">
-        <p className="text-muted-foreground">No drugs in inventory yet. Click "Add Drug" to get started.</p>
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : drugs.length === 0 ? (
+        <div className="border rounded-lg p-8 text-center">
+          <p className="text-muted-foreground">No drugs in inventory yet. Click "Add Drug" to get started.</p>
+        </div>
+      ) : (
+        <DrugTable 
+          drugs={drugs.filter(drug => 
+            drug.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            drug.manufacturer.toLowerCase().includes(searchQuery.toLowerCase())
+          )} 
+          onUpdate={fetchDrugs}
+        />
+      )}
 
-      <AddDrugDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+      <AddDrugDialog open={showAddDialog} onOpenChange={setShowAddDialog} onSuccess={fetchDrugs} />
     </div>
   );
 };
