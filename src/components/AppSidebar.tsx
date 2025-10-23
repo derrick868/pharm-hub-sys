@@ -24,6 +24,7 @@ const staffItems = [
 
 const adminMainItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
+  { title: 'Home', url: '/home', icon: Home },
   { title: 'Inventory', url: '/inventory', icon: Package },
   { title: 'Sales/POS', url: '/pos', icon: ShoppingCart },
 ];
