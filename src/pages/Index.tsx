@@ -19,8 +19,8 @@ const Index = () => {
           .select('role')
           .eq('user_id', session.user.id);
 
-        const isAdmin = roles?.some((r: any) => r.role === 'admin');
-        navigate(isAdmin ? '/dashboard' : '/home');
+        // const isAdmin = roles?.some((r: any) => r.role === 'admin');
+        // navigate(isAdmin ? '/dashboard' : '/home');
       }
       setChecking(false);
     };
