@@ -30,8 +30,8 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
           <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />
           <Route path="/pos" element={<DashboardLayout><POS /></DashboardLayout>} />
-          <Route path="/suppliers" element={<AdminRoute><DashboardLayout><Suppliers /></DashboardLayout></AdminRoute>} />
-          <Route path="/reports" element={<AdminRoute><DashboardLayout><Reports /></DashboardLayout></AdminRoute>} />
+          <Route path="/suppliers" element={<DashboardLayout><Suppliers /></DashboardLayout>} />
+          <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
