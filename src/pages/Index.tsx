@@ -8,25 +8,19 @@ const Index = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Check user role
-        const { data: roles } = await (supabase as any)
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id);
+useEffect(() => {
+  const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      navigate('/dashboard'); // Always go to dashboard if logged in
+    }
 
-        // const isAdmin = roles?.some((r: any) => r.role === 'admin');
-        // navigate(isAdmin ? '/dashboard' : '/home');
-      }
-      setChecking(false);
-    };
+    setChecking(false);
+  };
 
-    checkSession();
-  }, [navigate]);
+  checkSession();
+}, [navigate]);
 
   if (checking) {
     return (
