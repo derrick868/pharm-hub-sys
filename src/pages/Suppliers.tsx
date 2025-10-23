@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -28,12 +29,23 @@ interface Supplier {
   email: string;
 }
 
+interface Drug {
+  id: string;
+  name: string;
+  quantity: number;
+  selling_price: number;
+  expiry_date: string;
+}
+
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
+  const [supplierDrugs, setSupplierDrugs] = useState<Drug[]>([]);
+  const [loadingDrugs, setLoadingDrugs] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
@@ -130,6 +142,28 @@ const Suppliers = () => {
     });
   };
 
+  const fetchSupplierDrugs = async (supplierId: string) => {
+    setLoadingDrugs(true);
+    const { data, error } = await (supabase as any)
+      .from('drugs')
+      .select('id, name, quantity, selling_price, expiry_date')
+      .eq('supplier_id', supplierId)
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching supplier drugs:', error);
+      toast.error('Failed to load products');
+    } else {
+      setSupplierDrugs(data || []);
+    }
+    setLoadingDrugs(false);
+  };
+
+  const handleViewProducts = (supplierId: string) => {
+    setSelectedSupplier(supplierId);
+    fetchSupplierDrugs(supplierId);
+  };
+
   const filteredSuppliers = suppliers.filter(
     (supplier) =>
       supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -193,6 +227,9 @@ const Suppliers = () => {
                   <TableCell>{supplier.email}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => handleViewProducts(supplier.id)}>
+                        <Package className="h-4 w-4" />
+                      </Button>
                       <Button size="icon" variant="ghost" onClick={() => handleEdit(supplier)}>
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -206,6 +243,47 @@ const Suppliers = () => {
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {selectedSupplier && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Products from {suppliers.find(s => s.id === selectedSupplier)?.name}</CardTitle>
+            <CardDescription>View all products supplied by this supplier</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingDrugs ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              </div>
+            ) : supplierDrugs.length === 0 ? (
+              <p className="text-center text-muted-foreground p-8">No products from this supplier yet.</p>
+            ) : (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product Name</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Expiry Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {supplierDrugs.map((drug) => (
+                      <TableRow key={drug.id}>
+                        <TableCell className="font-medium">{drug.name}</TableCell>
+                        <TableCell>{drug.quantity}</TableCell>
+                        <TableCell>${Number(drug.selling_price).toFixed(2)}</TableCell>
+                        <TableCell>{new Date(drug.expiry_date).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Dialog open={showDialog} onOpenChange={handleCloseDialog}>

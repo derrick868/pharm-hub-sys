@@ -30,6 +30,7 @@ const Reports = () => {
     totalItems: 0,
     avgSaleValue: 0,
   });
+  const [dailyData, setDailyData] = useState<any[]>([]);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -75,6 +76,21 @@ const Reports = () => {
         totalItems,
         avgSaleValue: totalSales > 0 ? totalRevenue / totalSales : 0,
       });
+
+      // Group sales by day
+      const dailyGroups = (sales || []).reduce((acc: any, sale: any) => {
+        const day = format(new Date(sale.created_at), 'yyyy-MM-dd');
+        if (!acc[day]) {
+          acc[day] = { date: day, sales: 0, revenue: 0 };
+        }
+        acc[day].sales += 1;
+        acc[day].revenue += Number(sale.total_amount);
+        return acc;
+      }, {});
+
+      setDailyData(Object.values(dailyGroups).sort((a: any, b: any) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      ));
     }
     
     setLoading(false);
@@ -164,6 +180,43 @@ const Reports = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Daily Sales Summary</CardTitle>
+          <CardDescription>Sales breakdown by day</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : dailyData.length === 0 ? (
+            <p className="text-center text-muted-foreground p-8">No sales data available.</p>
+          ) : (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Sales Count</TableHead>
+                    <TableHead className="text-right">Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dailyData.map((day) => (
+                    <TableRow key={day.date}>
+                      <TableCell className="font-medium">{format(new Date(day.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="text-right">{day.sales}</TableCell>
+                      <TableCell className="text-right font-medium">${day.revenue.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
