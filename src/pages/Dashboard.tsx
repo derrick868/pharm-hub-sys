@@ -80,7 +80,7 @@ const Dashboard = () => {
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
              {expiringDrugs > 0
-              ? ${expiringDrugs} drug(s) expiring soon
+              ? {expiringDrugs} drug(s) expiring soon
               : 'No drugs expiring soon'}
           </div>
         </CardContent>
