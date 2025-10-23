@@ -20,7 +20,7 @@ const Dashboard = () => {
         setTotalDrugs(drugs.length);
 
         const value = drugs.reduce((sum, d) => sum + (d.price || 0) * (d.quantity || 0), 0);
-  return (
+ 
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -86,7 +86,7 @@ const Dashboard = () => {
         </CardContent>
       </Card>
     </div>
-  );
+
 };
 };
 };
