@@ -24,11 +24,11 @@ const Dashboard = () => {
         setTotalDrugs(drugs.length);
 
         // Total stock value
-        const value = drugs.reduce((sum, d) => sum + (d.price || 0) * (d.quantity || 0), 0);
+        const value = drugs.reduce((sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0), 0);
         setStockValue(value);
 
-        // Low stock items (example: threshold of 10)
-        const low = drugs.filter((d) => d.quantity < 10).length;
+        // Low stock items
+        const low = drugs.filter((d) => d.quantity < (d.low_stock_threshold || 10)).length;
         setLowStock(low);
 
         // Drugs expiring in next 60 days
