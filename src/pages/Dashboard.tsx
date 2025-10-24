@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, AlertTriangle, DollarSign, TrendingUp } from 'lucide-react';
 import dayjs from 'dayjs';
 
-
 const Dashboard = () => {
   const [stockValue, setStockValue] = useState(0);
   const [salesValue, setSalesValue] = useState(0);
@@ -14,17 +13,55 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      // Get all drugs
+      // Fetch all drugs
       const { data: drugs, error: drugsError } = await supabase.from('drugs').select('*');
-      if (drugs && !drugsError) {
+      if (drugsError) {
+        console.error('Error fetching drugs:', drugsError);
+        return;
+      }
+
+      if (drugs) {
         setTotalDrugs(drugs.length);
 
+        // Total stock value
         const value = drugs.reduce((sum, d) => sum + (d.price || 0) * (d.quantity || 0), 0);
- 
+        setStockValue(value);
+
+        // Low stock items (example: threshold of 10)
+        const low = drugs.filter((d) => d.quantity < 10).length;
+        setLowStock(low);
+
+        // Drugs expiring in next 60 days
+        const today = dayjs();
+        const expiring = drugs.filter(
+          (d) => d.expiry_date && dayjs(d.expiry_date).diff(today, 'day') <= 60
+        ).length;
+        setExpiringDrugs(expiring);
+      }
+
+      // Fetch sales in last 30 days (if you have a `sales` table)
+      const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
+      const { data: sales, error: salesError } = await supabase
+        .from('sales')
+        .select('total_amount, created_at')
+        .gte('created_at', thirtyDaysAgo);
+
+      if (!salesError && sales) {
+        const totalSales = sales.reduce((sum, s) => sum + (s.total_amount || 0), 0);
+        setSalesValue(totalSales);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome to your pharmacy management system</p>
+        <p className="text-muted-foreground">
+          Welcome to your pharmacy management system
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -34,7 +71,7 @@ const Dashboard = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">KSH{stockValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">KSH {stockValue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Based on purchase price</p>
           </CardContent>
         </Card>
@@ -45,7 +82,7 @@ const Dashboard = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{salesValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">KSH {salesValue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Last 30 days revenue</p>
           </CardContent>
         </Card>
@@ -79,16 +116,14 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-             {expiringDrugs > 0
-              ? ${expiringDrugs} drug(s) expiring soon
+            {expiringDrugs > 0
+              ? `${expiringDrugs} drug(s) expiring soon`
               : 'No drugs expiring soon'}
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+};
 
-};
-};
-};
-};
 export default Dashboard;
