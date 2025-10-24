@@ -14,16 +14,272 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assessments: {
+        Row: {
+          appointment_date: string | null
+          chief_complaint: string
+          created_at: string
+          created_by: string
+          diagnosis: string | null
+          history_present_illness: string | null
+          id: string
+          investigation: string | null
+          notes: string | null
+          past_medical_history: string | null
+          patient_age: number | null
+          patient_gender: string | null
+          patient_name: string
+          review_of_systems: string | null
+          treatment: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_date?: string | null
+          chief_complaint: string
+          created_at?: string
+          created_by: string
+          diagnosis?: string | null
+          history_present_illness?: string | null
+          id?: string
+          investigation?: string | null
+          notes?: string | null
+          past_medical_history?: string | null
+          patient_age?: number | null
+          patient_gender?: string | null
+          patient_name: string
+          review_of_systems?: string | null
+          treatment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string | null
+          chief_complaint?: string
+          created_at?: string
+          created_by?: string
+          diagnosis?: string | null
+          history_present_illness?: string | null
+          id?: string
+          investigation?: string | null
+          notes?: string | null
+          past_medical_history?: string | null
+          patient_age?: number | null
+          patient_gender?: string | null
+          patient_name?: string
+          review_of_systems?: string | null
+          treatment?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      drugs: {
+        Row: {
+          created_at: string
+          expiry_date: string
+          id: string
+          low_stock_threshold: number
+          manufacturer: string
+          name: string
+          purchase_price: number
+          quantity: number
+          selling_price: number
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_date: string
+          id?: string
+          low_stock_threshold?: number
+          manufacturer: string
+          name: string
+          purchase_price: number
+          quantity?: number
+          selling_price: number
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          low_stock_threshold?: number
+          manufacturer?: string
+          name?: string
+          purchase_price?: number
+          quantity?: number
+          selling_price?: number
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drugs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          created_at: string
+          drug_id: string
+          id: string
+          quantity: number
+          sale_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          drug_id: string
+          id?: string
+          quantity: number
+          sale_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          drug_id?: string
+          id?: string
+          quantity?: number
+          sale_id?: string
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_drug_id_fkey"
+            columns: ["drug_id"]
+            isOneToOne: false
+            referencedRelation: "drugs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          id: string
+          payment_method: string | null
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          contact_person: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "pharmacist" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +406,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "pharmacist", "staff"],
+    },
   },
 } as const

@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingCart, Users, FileText, LogOut } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, FileText, LogOut, Stethoscope } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import {
   Sidebar,
@@ -32,6 +32,7 @@ const adminMainItems = [
 const adminItems = [
   { title: 'Suppliers', url: '/suppliers', icon: Users },
   { title: 'Reports', url: '/reports', icon: FileText },
+  { title: 'Doctor Assessment', url: '/assessment', icon: Stethoscope },
 ];
 
 export function AppSidebar() {

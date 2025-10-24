@@ -14,7 +14,7 @@ const Dashboard = () => {
   useEffect(() => {
     const loadDashboardData = async () => {
       // Fetch all drugs
-      const { data: drugs, error: drugsError } = await supabase.from('drugs').select('*');
+      const { data: drugs, error: drugsError } = await (supabase as any).from('drugs').select('*');
       if (drugsError) {
         console.error('Error fetching drugs:', drugsError);
         return;
@@ -41,7 +41,7 @@ const Dashboard = () => {
 
       // Fetch sales in last 30 days (if you have a `sales` table)
       const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
-      const { data: sales, error: salesError } = await supabase
+      const { data: sales, error: salesError } = await (supabase as any)
         .from('sales')
         .select('total_amount, created_at')
         .gte('created_at', thirtyDaysAgo);
