@@ -13,9 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
 
 const assessmentSchema = z.object({
   patient_name: z.string().min(1, 'Patient name is required'),
@@ -97,7 +99,14 @@ const DoctorAssessment = () => {
         <p className="text-muted-foreground">Record patient assessment and treatment plan</p>
       </div>
 
-      <Card>
+      <Tabs defaultValue="new" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="new">New Assessment</TabsTrigger>
+          <TabsTrigger value="view">View All Assessments</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="new">
+          <Card>
         <CardHeader>
           <CardTitle>Patient Assessment Form</CardTitle>
           <CardDescription>Complete the patient evaluation and treatment details</CardDescription>
@@ -322,6 +331,12 @@ const DoctorAssessment = () => {
           </Form>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="view">
+          <AssessmentsTable />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
