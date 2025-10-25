@@ -11,6 +11,7 @@ import Inventory from "./pages/Inventory";
 import POS from "./pages/POS";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
+import Sales from "./pages/Sales";
 import DoctorAssessment from "./pages/DoctorAssessment";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/pos" element={<DashboardLayout><POS /></DashboardLayout>} />
           <Route path="/suppliers" element={<DashboardLayout><Suppliers /></DashboardLayout>} />
           <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
+          <Route path="/sales" element={<DashboardLayout><Sales /></DashboardLayout>} />
           <Route path="/assessment" element={<DashboardLayout><DoctorAssessment /></DashboardLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

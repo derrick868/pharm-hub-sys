@@ -14,7 +14,16 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Printer, Send } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface Assessment {
   id: string;
@@ -38,9 +47,13 @@ export const AssessmentsTable = () => {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [selectedStaff, setSelectedStaff] = useState<string>('');
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAssessments();
+    fetchStaff();
   }, []);
 
   const fetchAssessments = async () => {
@@ -56,6 +69,116 @@ export const AssessmentsTable = () => {
       setAssessments(data || []);
     }
     setLoading(false);
+  };
+
+  const fetchStaff = async () => {
+    const { data, error } = await (supabase as any)
+      .from('profiles')
+      .select('id, full_name, email');
+
+    if (error) {
+      console.error('Error fetching staff:', error);
+    } else {
+      setStaff(data || []);
+    }
+  };
+
+  const handlePrint = (assessment: Assessment) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Assessment - ${assessment.patient_name}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+              .section { margin: 20px 0; }
+              .label { font-weight: bold; color: #666; }
+              .value { margin-left: 10px; }
+              .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 15px 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Patient Assessment</h1>
+            <div class="section">
+              <p><span class="label">Date:</span><span class="value">${format(new Date(assessment.created_at), 'PPP')}</span></p>
+            </div>
+            <div class="grid">
+              <div><span class="label">Patient Name:</span><span class="value">${assessment.patient_name}</span></div>
+              <div><span class="label">Age:</span><span class="value">${assessment.patient_age || 'N/A'}</span></div>
+              <div><span class="label">Gender:</span><span class="value">${assessment.patient_gender || 'N/A'}</span></div>
+            </div>
+            <div class="section">
+              <p class="label">Chief Complaint:</p>
+              <p>${assessment.chief_complaint}</p>
+            </div>
+            ${assessment.history_present_illness ? `
+              <div class="section">
+                <p class="label">History of Present Illness:</p>
+                <p>${assessment.history_present_illness}</p>
+              </div>
+            ` : ''}
+            ${assessment.past_medical_history ? `
+              <div class="section">
+                <p class="label">Past Medical History:</p>
+                <p>${assessment.past_medical_history}</p>
+              </div>
+            ` : ''}
+            ${assessment.review_of_systems ? `
+              <div class="section">
+                <p class="label">Review of Systems:</p>
+                <p>${assessment.review_of_systems}</p>
+              </div>
+            ` : ''}
+            ${assessment.investigation ? `
+              <div class="section">
+                <p class="label">Investigation:</p>
+                <p>${assessment.investigation}</p>
+              </div>
+            ` : ''}
+            ${assessment.diagnosis ? `
+              <div class="section">
+                <p class="label">Diagnosis:</p>
+                <p><strong>${assessment.diagnosis}</strong></p>
+              </div>
+            ` : ''}
+            ${assessment.treatment ? `
+              <div class="section">
+                <p class="label">Treatment:</p>
+                <p>${assessment.treatment}</p>
+              </div>
+            ` : ''}
+            ${assessment.appointment_date ? `
+              <div class="section">
+                <p class="label">Follow-up Appointment:</p>
+                <p>${format(new Date(assessment.appointment_date), 'PPP')}</p>
+              </div>
+            ` : ''}
+            ${assessment.notes ? `
+              <div class="section">
+                <p class="label">Additional Notes:</p>
+                <p>${assessment.notes}</p>
+              </div>
+            ` : ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handleForward = async () => {
+    if (!selectedAssessment || !selectedStaff) {
+      toast.error('Please select a staff member');
+      return;
+    }
+
+    const staffMember = staff.find(s => s.id === selectedStaff);
+    toast.success(`Assessment forwarded to ${staffMember?.full_name}`);
+    setForwardDialogOpen(false);
+    setSelectedStaff('');
   };
 
   if (loading) {
@@ -109,16 +232,71 @@ export const AssessmentsTable = () => {
                     <TableCell className="max-w-xs truncate">{assessment.chief_complaint}</TableCell>
                     <TableCell className="max-w-xs truncate">{assessment.diagnosis || 'N/A'}</TableCell>
                     <TableCell className="text-right">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedAssessment(assessment)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePrint(assessment)}
+                          title="Print"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        <Dialog open={forwardDialogOpen && selectedAssessment?.id === assessment.id} onOpenChange={setForwardDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedAssessment(assessment)}
+                              title="Forward to Staff"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Forward Assessment</DialogTitle>
+                              <DialogDescription>
+                                Forward this assessment to a staff member
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="staff">Select Staff Member</Label>
+                                <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+                                  <SelectTrigger id="staff">
+                                    <SelectValue placeholder="Choose staff member" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {staff.map((member) => (
+                                      <SelectItem key={member.id} value={member.id}>
+                                        {member.full_name} ({member.email})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button variant="outline" onClick={() => setForwardDialogOpen(false)}>
+                                Cancel
+                              </Button>
+                              <Button onClick={handleForward}>
+                                Forward
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedAssessment(assessment)}
+                              title="View Details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
                         <DialogContent className="max-w-3xl max-h-[80vh]">
                           <DialogHeader>
                             <DialogTitle>Assessment Details</DialogTitle>
@@ -208,7 +386,8 @@ export const AssessmentsTable = () => {
                             </div>
                           </ScrollArea>
                         </DialogContent>
-                      </Dialog>
+                        </Dialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -12,8 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { DollarSign, Package, ShoppingCart, TrendingUp } from 'lucide-react';
+import { DollarSign, Package, ShoppingCart, TrendingUp, Printer } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const Reports = () => {
   const [dateFrom, setDateFrom] = useState(() => {
@@ -35,22 +36,27 @@ const Reports = () => {
   const fetchReports = async () => {
     setLoading(true);
     
-    const { data: sales, error } = await (supabase as any)
-      .from('sales')
-      .select(`
-        id,
-        created_at,
-        total_amount,
-        payment_method,
-        profiles!sales_user_id_fkey(full_name)
-      `)
-      .gte('created_at', new Date(dateFrom).toISOString())
-      .lte('created_at', new Date(dateTo + 'T23:59:59').toISOString())
-      .order('created_at', { ascending: false });
+    try {
+      const { data: sales, error } = await (supabase as any)
+        .from('sales')
+        .select(`
+          id,
+          created_at,
+          total_amount,
+          payment_method,
+          user_id,
+          profiles(full_name)
+        `)
+        .gte('created_at', new Date(dateFrom).toISOString())
+        .lte('created_at', new Date(dateTo + 'T23:59:59').toISOString())
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching sales:', error);
-    } else {
+      if (error) {
+        console.error('Error fetching sales:', error);
+        toast.error('Failed to fetch sales data');
+        setLoading(false);
+        return;
+      }
       setSalesData(sales || []);
       
       // Calculate stats
@@ -91,9 +97,16 @@ const Reports = () => {
       setDailyData(Object.values(dailyGroups).sort((a: any, b: any) => 
         new Date(b.date).getTime() - new Date(a.date).getTime()
       ));
+    } catch (error) {
+      console.error('Error in fetchReports:', error);
+      toast.error('Failed to generate report');
     }
     
     setLoading(false);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   useEffect(() => {
@@ -102,12 +115,18 @@ const Reports = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
-        <p className="text-muted-foreground">View sales reports and business insights</p>
+      <div className="flex items-center justify-between print:hidden">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
+          <p className="text-muted-foreground">View sales reports and business insights</p>
+        </div>
+        <Button onClick={handlePrint} variant="outline" className="gap-2">
+          <Printer className="h-4 w-4" />
+          Print Report
+        </Button>
       </div>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Date Range Filter</CardTitle>
           <CardDescription>Select a date range to view reports</CardDescription>
@@ -244,9 +263,9 @@ const Reports = () => {
                 <TableBody>
                   {salesData.map((sale) => (
                     <TableRow key={sale.id}>
-                      <TableCell>{format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}</TableCell>
-                      <TableCell>{sale.profiles?.full_name || 'N/A'}</TableCell>
-                      <TableCell className="capitalize">{sale.payment_method || 'N/A'}</TableCell>
+                       <TableCell>{format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}</TableCell>
+                       <TableCell>{(sale as any).profiles?.full_name || 'N/A'}</TableCell>
+                       <TableCell className="capitalize">{sale.payment_method || 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium">${Number(sale.total_amount).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
