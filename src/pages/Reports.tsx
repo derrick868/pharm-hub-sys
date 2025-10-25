@@ -37,7 +37,7 @@ const Reports = () => {
     setLoading(true);
     
     try {
-      const { data: sales, error } = await (supabase as any)
+      const { data: sales, error } = await supabase
         .from('sales')
         .select(`
           id,
@@ -45,7 +45,7 @@ const Reports = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles(full_name)
+          profiles!sales_user_id_fkey(full_name)
         `)
         .gte('created_at', new Date(dateFrom).toISOString())
         .lte('created_at', new Date(dateTo + 'T23:59:59').toISOString())
@@ -68,7 +68,7 @@ const Reports = () => {
       let totalItems = 0;
       
       if (saleIds.length > 0) {
-        const { data: items } = await (supabase as any)
+        const { data: items } = await supabase
           .from('sale_items')
           .select('quantity')
           .in('sale_id', saleIds);

@@ -47,7 +47,7 @@ const Sales = () => {
   const fetchSales = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('sales')
         .select(`
           id,
@@ -55,7 +55,7 @@ const Sales = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles(full_name)
+          profiles!sales_user_id_fkey(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -75,7 +75,7 @@ const Sales = () => {
   const fetchSaleItems = async (saleId: string) => {
     setItemsLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('sale_items')
         .select(`
           id,
