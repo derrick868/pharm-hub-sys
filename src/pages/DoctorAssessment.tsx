@@ -381,15 +381,7 @@ const DoctorAssessment = () => {
               </p>
             </div>
           ) : (
-            <AssessmentsTable
-              assessments={assessments.filter(
-                (a) =>
-                  a.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (a.diagnosis && a.diagnosis.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                  (a.chief_complaint && a.chief_complaint.toLowerCase().includes(searchQuery.toLowerCase()))
-              )}
-              onUpdate={fetchAssessments}
-            />
+            <AssessmentsTable />
           )}
         </TabsContent>
       </Tabs>

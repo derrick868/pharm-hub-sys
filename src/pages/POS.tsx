@@ -200,7 +200,7 @@ const POS = () => {
                     <p className="text-sm text-muted-foreground">Stock: {drug.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">${drug.selling_price.toFixed(2)}</p>
+                    <p className="font-bold">KSH {drug.selling_price.toFixed(2)}</p>
                     <Button size="sm" variant="outline">Add</Button>
                   </div>
                 </div>
@@ -241,7 +241,7 @@ const POS = () => {
                             <p className="text-xs text-muted-foreground">{item.drug.manufacturer}</p>
                           </div>
                         </TableCell>
-                        <TableCell>${item.drug.selling_price.toFixed(2)}</TableCell>
+                        <TableCell>KSH {item.drug.selling_price.toFixed(2)}</TableCell>
                         <TableCell>
                           <Input
                             type="number"
@@ -252,7 +252,7 @@ const POS = () => {
                             className="w-16"
                           />
                         </TableCell>
-                        <TableCell>${(item.drug.selling_price * item.quantity).toFixed(2)}</TableCell>
+                        <TableCell>KSH {(item.drug.selling_price * item.quantity).toFixed(2)}</TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -270,7 +270,7 @@ const POS = () => {
                 <div className="space-y-4 pt-4 border-t">
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
+                    <span>KSH {calculateTotal().toFixed(2)}</span>
                   </div>
 
                   <div>

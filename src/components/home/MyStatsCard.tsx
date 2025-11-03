@@ -129,7 +129,7 @@ export const MyStatsCard = () => {
         <DollarSign className="h-8 w-8 text-primary" />
         <div>
           <p className="text-sm text-muted-foreground">Revenue</p>
-          <p className="text-2xl font-bold">${stats.totalAmount.toFixed(2)}</p>
+          <p className="text-2xl font-bold">KSH {stats.totalAmount.toFixed(2)}</p>
         </div>
       </div>
       <div className="flex items-center gap-3 p-3 border rounded-lg">

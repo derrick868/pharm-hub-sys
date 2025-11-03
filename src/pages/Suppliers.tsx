@@ -274,7 +274,7 @@ const Suppliers = () => {
                       <TableRow key={drug.id}>
                         <TableCell className="font-medium">{drug.name}</TableCell>
                         <TableCell>{drug.quantity}</TableCell>
-                        <TableCell>${Number(drug.selling_price).toFixed(2)}</TableCell>
+                        <TableCell>KSH {Number(drug.selling_price).toFixed(2)}</TableCell>
                         <TableCell>{new Date(drug.expiry_date).toLocaleDateString()}</TableCell>
                       </TableRow>
                     ))}

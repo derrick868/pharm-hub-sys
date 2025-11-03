@@ -45,7 +45,7 @@ const Reports = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles!sales_user_id_fkey(full_name)
+          profiles!sales_user_id_profiles_fkey(full_name)
         `)
         .gte('created_at', new Date(dateFrom).toISOString())
         .lte('created_at', new Date(dateTo + 'T23:59:59').toISOString())
@@ -165,7 +165,7 @@ const Reports = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">KSH {stats.totalRevenue.toFixed(2)}</div>
           </CardContent>
         </Card>
 
@@ -195,7 +195,7 @@ const Reports = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.avgSaleValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">KSH {stats.avgSaleValue.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
@@ -227,7 +227,7 @@ const Reports = () => {
                     <TableRow key={day.date}>
                       <TableCell className="font-medium">{format(new Date(day.date), 'MMM dd, yyyy')}</TableCell>
                       <TableCell className="text-right">{day.sales}</TableCell>
-                      <TableCell className="text-right font-medium">${day.revenue.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-medium">KSH {day.revenue.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -266,7 +266,7 @@ const Reports = () => {
                        <TableCell>{format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}</TableCell>
                        <TableCell>{(sale as any).profiles?.full_name || 'N/A'}</TableCell>
                        <TableCell className="capitalize">{sale.payment_method || 'N/A'}</TableCell>
-                      <TableCell className="text-right font-medium">${Number(sale.total_amount).toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-medium">KSH {Number(sale.total_amount).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

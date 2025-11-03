@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EditDrugDialog } from './EditDrugDialog';
 
 interface Drug {
   id: string;
@@ -32,6 +33,8 @@ interface DrugTableProps {
 
 export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingDrug, setEditingDrug] = useState<Drug | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
@@ -56,8 +59,20 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
     return days <= 60 && days >= 0;
   };
 
+  const handleEdit = (drug: Drug) => {
+    setEditingDrug(drug);
+    setEditDialogOpen(true);
+  };
+
   return (
-    <div className="border rounded-lg">
+    <>
+      <EditDrugDialog
+        drug={editingDrug}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUpdate={onUpdate}
+      />
+      <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow>
@@ -76,8 +91,8 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
             <TableRow key={drug.id}>
               <TableCell className="font-medium">{drug.name}</TableCell>
               <TableCell>{drug.manufacturer}</TableCell>
-              <TableCell className="text-right">${Number(drug.purchase_price).toFixed(2)}</TableCell>
-              <TableCell className="text-right">${Number(drug.selling_price).toFixed(2)}</TableCell>
+              <TableCell className="text-right">KSH {Number(drug.purchase_price).toFixed(2)}</TableCell>
+              <TableCell className="text-right">KSH {Number(drug.selling_price).toFixed(2)}</TableCell>
               <TableCell className="text-right">
                 <span className={isLowStock(drug.quantity, drug.low_stock_threshold) ? 'text-destructive font-semibold' : ''}>
                   {drug.quantity}
@@ -96,7 +111,11 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button size="icon" variant="ghost">
+                  <Button 
+                    size="icon" 
+                    variant="ghost"
+                    onClick={() => handleEdit(drug)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
@@ -114,5 +133,6 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
         </TableBody>
       </Table>
     </div>
+    </>
   );
 };

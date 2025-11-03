@@ -55,7 +55,7 @@ const Sales = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles!sales_user_id_fkey(full_name)
+          profiles!sales_user_id_profiles_fkey(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -148,7 +148,7 @@ const Sales = () => {
                       <TableCell>{sale.profiles?.full_name || 'N/A'}</TableCell>
                       <TableCell className="capitalize">{sale.payment_method || 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium">
-                        ${Number(sale.total_amount).toFixed(2)}
+                        KSH {Number(sale.total_amount).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Dialog>
@@ -211,12 +211,12 @@ const Sales = () => {
                                               {(item as any).drugs?.manufacturer || 'N/A'}
                                             </TableCell>
                                             <TableCell className="text-right">{item.quantity}</TableCell>
-                                            <TableCell className="text-right">
-                                              ${Number(item.unit_price).toFixed(2)}
-                                            </TableCell>
-                                            <TableCell className="text-right font-medium">
-                                              ${Number(item.subtotal).toFixed(2)}
-                                            </TableCell>
+                                             <TableCell className="text-right">
+                                              KSH {Number(item.unit_price).toFixed(2)}
+                                             </TableCell>
+                                             <TableCell className="text-right font-medium">
+                                              KSH {Number(item.subtotal).toFixed(2)}
+                                             </TableCell>
                                           </TableRow>
                                         ))}
                                       </TableBody>
@@ -227,8 +227,8 @@ const Sales = () => {
 
                               <div className="flex justify-end pt-4 border-t">
                                 <div>
-                                  <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
-                                  <p className="text-2xl font-bold">${Number(sale.total_amount).toFixed(2)}</p>
+                                   <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
+                                  <p className="text-2xl font-bold">KSH {Number(sale.total_amount).toFixed(2)}</p>
                                 </div>
                               </div>
                             </div>
