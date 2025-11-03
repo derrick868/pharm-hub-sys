@@ -1,48 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { CalendarIcon, Search } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
@@ -67,11 +40,9 @@ type AssessmentForm = z.infer<typeof assessmentSchema>;
 const DoctorAssessment = () => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // 🆕 Added search and data state for the View tab
-  const [searchQuery, setSearchQuery] = useState('');
   const [assessments, setAssessments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const form = useForm<AssessmentForm>({
     resolver: zodResolver(assessmentSchema),
@@ -90,7 +61,6 @@ const DoctorAssessment = () => {
     },
   });
 
-  // 🆕 Fetch assessments
   const fetchAssessments = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
@@ -100,21 +70,16 @@ const DoctorAssessment = () => {
 
     if (error) {
       console.error('Error fetching assessments:', error);
-      // optionally show toast.error('Failed to load assessments');
-      setAssessments([]);
     } else {
       setAssessments(data || []);
     }
-
     setLoading(false);
   };
 
-  // 🆕 Load assessments on mount
   useEffect(() => {
     fetchAssessments();
   }, []);
 
-  // Submit function (unchanged)
   const onSubmit = async (data: AssessmentForm) => {
     if (!user) {
       toast.error('You must be logged in');
@@ -143,6 +108,7 @@ const DoctorAssessment = () => {
 
       toast.success('Assessment saved successfully');
       form.reset();
+      fetchAssessments();
     } catch (error: any) {
       toast.error(error.message || 'Failed to save assessment');
     } finally {
@@ -153,12 +119,8 @@ const DoctorAssessment = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">
-          Doctor&apos;s Assessment
-        </h2>
-        <p className="text-muted-foreground">
-          Record patient assessment and treatment plan
-        </p>
+        <h2 className="text-3xl font-bold tracking-tight">Doctor's Assessment</h2>
+        <p className="text-muted-foreground">Record patient assessment and treatment plan</p>
       </div>
 
       <Tabs defaultValue="new" className="space-y-4">
@@ -167,21 +129,15 @@ const DoctorAssessment = () => {
           <TabsTrigger value="view">View All Assessments</TabsTrigger>
         </TabsList>
 
-        {/* --- NEW ASSESSMENT TAB --- */}
         <TabsContent value="new">
           <Card>
             <CardHeader>
               <CardTitle>Patient Assessment Form</CardTitle>
-              <CardDescription>
-                Complete the patient evaluation and treatment details
-              </CardDescription>
+              <CardDescription>Complete the patient evaluation and treatment details</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Patient Information */}
                   <div className="grid gap-4 md:grid-cols-3">
                     <FormField
@@ -191,10 +147,7 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>Patient Name *</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Enter patient name"
-                              {...field}
-                            />
+                            <Input placeholder="Enter patient name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -219,10 +172,7 @@ const DoctorAssessment = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Gender</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select gender" />
@@ -248,11 +198,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Chief Complaint *</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Primary reason for visit"
-                            rows={3}
-                            {...field}
-                          />
+                          <Textarea placeholder="Primary reason for visit" rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -267,18 +213,14 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>History of Present Illness</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Timeline and details of current condition"
-                            rows={4}
-                            {...field}
-                          />
+                          <Textarea placeholder="Timeline and details of current condition" rows={4} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* Past Medical or Surgical History */}
+                  {/* Past Medical History */}
                   <FormField
                     control={form.control}
                     name="past_medical_history"
@@ -286,11 +228,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Past Medical or Surgical History</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Previous medical conditions, surgeries, etc."
-                            rows={3}
-                            {...field}
-                          />
+                          <Textarea placeholder="Previous medical conditions, surgeries, etc." rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -305,11 +243,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Review of Systems</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Systematic review of body systems"
-                            rows={4}
-                            {...field}
-                          />
+                          <Textarea placeholder="Systematic review of body systems" rows={4} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -324,11 +258,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Investigation</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Lab tests, imaging, diagnostic procedures"
-                            rows={3}
-                            {...field}
-                          />
+                          <Textarea placeholder="Lab tests, imaging, diagnostic procedures" rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -343,11 +273,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Diagnosis</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Medical diagnosis"
-                            rows={2}
-                            {...field}
-                          />
+                          <Textarea placeholder="Medical diagnosis" rows={2} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -362,11 +288,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Treatment</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Treatment plan and medications"
-                            rows={4}
-                            {...field}
-                          />
+                          <Textarea placeholder="Treatment plan and medications" rows={4} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -391,17 +313,12 @@ const DoctorAssessment = () => {
                                     !field.value && 'text-muted-foreground'
                                   )}
                                 >
-                                  {field.value
-                                    ? format(field.value, 'PPP')
-                                    : 'Pick a date'}
+                                  {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="start"
-                            >
+                            <PopoverContent className="w-auto p-0" align="start">
                               <Calendar
                                 mode="single"
                                 selected={field.value}
@@ -423,11 +340,7 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>Additional Notes</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="Any additional information"
-                              rows={3}
-                              {...field}
-                            />
+                            <Textarea placeholder="Any additional information" rows={3} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -435,11 +348,7 @@ const DoctorAssessment = () => {
                     />
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full md:w-auto"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
                     {isSubmitting ? 'Saving...' : 'Save Assessment'}
                   </Button>
                 </form>
@@ -448,16 +357,12 @@ const DoctorAssessment = () => {
           </Card>
         </TabsContent>
 
-        {/* --- VIEW ALL ASSESSMENTS TAB --- */}
         <TabsContent value="view">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <h3 className="text-xl font-semibold">All Assessments</h3>
-
-            {/* Search Input */}
-            <div className="relative w-full sm:w-80">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by patient name, diagnosis..."
+                placeholder="Search assessments by patient name, diagnosis..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -472,22 +377,16 @@ const DoctorAssessment = () => {
           ) : assessments.length === 0 ? (
             <div className="border rounded-lg p-8 text-center">
               <p className="text-muted-foreground">
-                No assessments found.
+                No assessments found. Add a new one in the “New Assessment” tab.
               </p>
             </div>
           ) : (
             <AssessmentsTable
               assessments={assessments.filter(
                 (a) =>
-                  (a.patient_name ?? '')
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                  (a.diagnosis ?? '')
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                  (a.chief_complaint ?? '')
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase())
+                  a.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (a.diagnosis && a.diagnosis.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                  (a.chief_complaint && a.chief_complaint.toLowerCase().includes(searchQuery.toLowerCase()))
               )}
               onUpdate={fetchAssessments}
             />
