@@ -1,20 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { CalendarIcon, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
@@ -40,6 +68,11 @@ const DoctorAssessment = () => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 🆕 Added search and data state for the View tab
+  const [searchQuery, setSearchQuery] = useState('');
+  const [assessments, setAssessments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const form = useForm<AssessmentForm>({
     resolver: zodResolver(assessmentSchema),
     defaultValues: {
@@ -57,6 +90,31 @@ const DoctorAssessment = () => {
     },
   });
 
+  // 🆕 Fetch assessments
+  const fetchAssessments = async () => {
+    setLoading(true);
+    const { data, error } = await (supabase as any)
+      .from('assessments')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching assessments:', error);
+      // optionally show toast.error('Failed to load assessments');
+      setAssessments([]);
+    } else {
+      setAssessments(data || []);
+    }
+
+    setLoading(false);
+  };
+
+  // 🆕 Load assessments on mount
+  useEffect(() => {
+    fetchAssessments();
+  }, []);
+
+  // Submit function (unchanged)
   const onSubmit = async (data: AssessmentForm) => {
     if (!user) {
       toast.error('You must be logged in');
@@ -95,8 +153,12 @@ const DoctorAssessment = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Doctor's Assessment</h2>
-        <p className="text-muted-foreground">Record patient assessment and treatment plan</p>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Doctor&apos;s Assessment
+        </h2>
+        <p className="text-muted-foreground">
+          Record patient assessment and treatment plan
+        </p>
       </div>
 
       <Tabs defaultValue="new" className="space-y-4">
@@ -105,236 +167,331 @@ const DoctorAssessment = () => {
           <TabsTrigger value="view">View All Assessments</TabsTrigger>
         </TabsList>
 
+        {/* --- NEW ASSESSMENT TAB --- */}
         <TabsContent value="new">
           <Card>
-        <CardHeader>
-          <CardTitle>Patient Assessment Form</CardTitle>
-          <CardDescription>Complete the patient evaluation and treatment details</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Patient Information */}
-              <div className="grid gap-4 md:grid-cols-3">
-                <FormField
-                  control={form.control}
-                  name="patient_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Patient Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter patient name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="patient_age"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Age</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Age" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="patient_gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Chief Complaint */}
-              <FormField
-                control={form.control}
-                name="chief_complaint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Chief Complaint *</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Primary reason for visit" rows={3} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* History of Present Illness */}
-              <FormField
-                control={form.control}
-                name="history_present_illness"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>History of Present Illness</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Timeline and details of current condition" rows={4} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Past Medical or Surgical History */}
-              <FormField
-                control={form.control}
-                name="past_medical_history"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Past Medical or Surgical History</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Previous medical conditions, surgeries, etc." rows={3} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Review of Systems */}
-              <FormField
-                control={form.control}
-                name="review_of_systems"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Review of Systems</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Systematic review of body systems" rows={4} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Investigation */}
-              <FormField
-                control={form.control}
-                name="investigation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Investigation</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Lab tests, imaging, diagnostic procedures" rows={3} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Diagnosis */}
-              <FormField
-                control={form.control}
-                name="diagnosis"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Diagnosis</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Medical diagnosis" rows={2} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Treatment */}
-              <FormField
-                control={form.control}
-                name="treatment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Treatment</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Treatment plan and medications" rows={4} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Appointment */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="appointment_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Follow-up Appointment</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+            <CardHeader>
+              <CardTitle>Patient Assessment Form</CardTitle>
+              <CardDescription>
+                Complete the patient evaluation and treatment details
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
+                  {/* Patient Information */}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="patient_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Patient Name *</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input
+                              placeholder="Enter patient name"
+                              {...field}
+                            />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="patient_age"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Age</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="Age" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="patient_gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select gender" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Chief Complaint */}
+                  <FormField
+                    control={form.control}
+                    name="chief_complaint"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Chief Complaint *</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Primary reason for visit"
+                            rows={3}
+                            {...field}
                           />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Additional Notes</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Any additional information" rows={3} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  {/* History of Present Illness */}
+                  <FormField
+                    control={form.control}
+                    name="history_present_illness"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>History of Present Illness</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Timeline and details of current condition"
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-                {isSubmitting ? 'Saving...' : 'Save Assessment'}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                  {/* Past Medical or Surgical History */}
+                  <FormField
+                    control={form.control}
+                    name="past_medical_history"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Past Medical or Surgical History</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Previous medical conditions, surgeries, etc."
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Review of Systems */}
+                  <FormField
+                    control={form.control}
+                    name="review_of_systems"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Review of Systems</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Systematic review of body systems"
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Investigation */}
+                  <FormField
+                    control={form.control}
+                    name="investigation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Investigation</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Lab tests, imaging, diagnostic procedures"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Diagnosis */}
+                  <FormField
+                    control={form.control}
+                    name="diagnosis"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Diagnosis</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Medical diagnosis"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Treatment */}
+                  <FormField
+                    control={form.control}
+                    name="treatment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Treatment</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Treatment plan and medications"
+                            rows={4}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Appointment */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="appointment_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Follow-up Appointment</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value
+                                    ? format(field.value, 'PPP')
+                                    : 'Pick a date'}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Additional Notes</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Any additional information"
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Assessment'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* --- VIEW ALL ASSESSMENTS TAB --- */}
         <TabsContent value="view">
-          <AssessmentsTable />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <h3 className="text-xl font-semibold">All Assessments</h3>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by patient name, diagnosis..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : assessments.length === 0 ? (
+            <div className="border rounded-lg p-8 text-center">
+              <p className="text-muted-foreground">
+                No assessments found.
+              </p>
+            </div>
+          ) : (
+            <AssessmentsTable
+              assessments={assessments.filter(
+                (a) =>
+                  (a.patient_name ?? '')
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  (a.diagnosis ?? '')
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  (a.chief_complaint ?? '')
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+              )}
+              onUpdate={fetchAssessments}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
