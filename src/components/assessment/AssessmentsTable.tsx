@@ -43,7 +43,11 @@ interface Assessment {
   created_by: string;
 }
 
-export const AssessmentsTable = () => {
+interface AssessmentsTableProps {
+  searchQuery?: string;
+}
+
+export const AssessmentsTable = ({ searchQuery = '' }: AssessmentsTableProps) => {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
@@ -189,11 +193,31 @@ export const AssessmentsTable = () => {
     );
   }
 
+  const filteredAssessments = assessments.filter((assessment) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      assessment.patient_name.toLowerCase().includes(query) ||
+      (assessment.diagnosis && assessment.diagnosis.toLowerCase().includes(query)) ||
+      (assessment.chief_complaint && assessment.chief_complaint.toLowerCase().includes(query))
+    );
+  });
+
   if (assessments.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">
           <p className="text-center text-muted-foreground">No assessments found.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (filteredAssessments.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">No assessments match your search.</p>
         </CardContent>
       </Card>
     );
@@ -221,7 +245,7 @@ export const AssessmentsTable = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {assessments.map((assessment) => (
+                {filteredAssessments.map((assessment) => (
                   <TableRow key={assessment.id}>
                     <TableCell className="whitespace-nowrap">
                       {format(new Date(assessment.created_at), 'MMM dd, yyyy')}

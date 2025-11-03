@@ -381,7 +381,7 @@ const DoctorAssessment = () => {
               </p>
             </div>
           ) : (
-            <AssessmentsTable />
+            <AssessmentsTable searchQuery={searchQuery} />
           )}
         </TabsContent>
       </Tabs>
