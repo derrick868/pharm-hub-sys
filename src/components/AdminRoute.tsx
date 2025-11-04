@@ -1,23 +1,12 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 
 export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!authLoading && !roleLoading) {
-      if (!user) {
-        navigate('/auth');
-      } else if (!isAdmin) {
-        navigate('/home');
-      }
-    }
-  }, [user, isAdmin, authLoading, roleLoading, navigate]);
-
+  // 🕒 Show a spinner while loading authentication or role
   if (authLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -26,5 +15,16 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  return user && isAdmin ? <>{children}</> : null;
+  // 🚫 No user is logged in
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // ⚠️ User logged in but not admin
+  if (!isAdmin) {
+    return <Navigate to="/home" replace />;
+  }
+
+  // ✅ User is admin, show the protected content
+  return <>{children}</>;
 };
