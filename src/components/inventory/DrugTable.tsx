@@ -37,30 +37,60 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
 const handleDelete = async (id: string) => {
-  setDeletingId(id);
+  try {
+    setDeletingId(id);
 
-  // Step 1: Unlink sales that reference this drug
-  await supabase
-    .from("sale_items")
-    .update({ drug_id: null })
-    .eq("drug_id", id);
+    // 1️⃣ Unlink all related sales first
+    console.log(`[Delete] Unlinking sale_items for drug: ${id}`);
+    const { error: unlinkError } = await supabase
+      .from('sale_items')
+      .update({ drug_id: null })
+      .eq('drug_id', id);
 
-  // Step 2: Now safely delete the drug
-  const { error } = await supabase
-    .from("drugs")
-    .delete()
-    .eq("id", id);
+    if (unlinkError) {
+      console.error('Error unlinking sale_items:', unlinkError);
+      toast.error('Could not unlink sales before deleting drug');
+      setDeletingId(null);
+      return;
+    }
 
-  if (error) {
-    toast.error("Failed to delete drug");
-    console.error("Error deleting drug:", error);
-  } else {
-    toast.success("Drug deleted successfully");
-    onUpdate();
+    // 2️⃣ Double-check that sales are unlinked
+    const { data: linkedSales, error: checkError } = await supabase
+      .from('sale_items')
+      .select('id')
+      .eq('drug_id', id);
+
+    if (checkError) {
+      console.error('Error checking linked sales:', checkError);
+    } else if (linkedSales.length > 0) {
+      console.warn('Sales still linked — delete will fail.');
+      toast.error('Sales still linked, delete blocked.');
+      setDeletingId(null);
+      return;
+    }
+
+    // 3️⃣ Now safely delete the drug
+    console.log(`[Delete] Attempting to delete drug: ${id}`);
+    const { error: deleteError } = await supabase
+      .from('drugs')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Error deleting drug:', deleteError);
+      toast.error('Failed to delete drug');
+    } else {
+      toast.success('Drug deleted successfully');
+      onUpdate();
+    }
+  } catch (err) {
+    console.error('Unexpected error deleting drug:', err);
+    toast.error('Unexpected error occurred');
+  } finally {
+    setDeletingId(null);
   }
-
-  setDeletingId(null);
 };
+
 
 
 
