@@ -37,21 +37,23 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleDelete = async (id: string) => {
-    setDeletingId(id);
-    const { error } = await (supabase as any)
-      .from('drugs')
-      .delete()
-      .eq('id', id);
+  setDeletingId(id);
+  const { error } = await supabase.from('drugs').delete().eq('id', id);
 
-    if (error) {
-      toast.error('Failed to delete drug');
-      console.error('Error deleting drug:', error);
+  if (error) {
+    if (error.code === '23503') {
+      toast.error('Cannot delete this drug because it is referenced in sales.');
     } else {
-      toast.success('Drug deleted successfully');
-      onUpdate();
+      toast.error('Failed to delete drug');
     }
-    setDeletingId(null);
-  };
+    console.error('Error deleting drug:', error);
+  } else {
+    toast.success('Drug deleted successfully');
+    onUpdate();
+  }
+  setDeletingId(null);
+};
+
 
   const isLowStock = (quantity: number, threshold: number) => quantity <= threshold;
   const isExpiringSoon = (expiryDate: string) => {
