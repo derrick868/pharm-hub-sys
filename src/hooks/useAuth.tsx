@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -12,37 +12,40 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    console.log('[useAuth] ⏳ Getting initial session...');
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        console.log('[useAuth] ✅ Session loaded:', session);
-      }
-    });
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      setLoading(false);
+      console.log("[useAuth] ✅ Initial session:", data.session);
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (mounted) {
-          console.log('[useAuth] 🔄 Auth state changed:', _event, session);
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+
+      console.log("[useAuth] 🔄 Auth state changed:", _event);
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (_event === "SIGNED_OUT") {
+        navigate("/auth");
       }
-    );
+
+      setLoading(false);
+    });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    console.log('[useAuth] 🚪 User signed out');
-    navigate('/auth');
+    navigate("/auth");
   };
 
   return { user, session, loading, signOut };
