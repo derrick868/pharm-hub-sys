@@ -18,15 +18,21 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Listen for auth state changes and redirect when logged in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && event === 'SIGNED_IN') {
+        navigate('/dashboard', { replace: true });
+      }
+    });
+
     // Check if user is already logged in
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate('/dashboard', { replace: true });
       }
-    };
-    
-    checkSession();
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -44,15 +50,14 @@ const Auth = () => {
         description: error.message,
         variant: 'destructive',
       });
+      setLoading(false);
     } else {
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
-      navigate('/dashboard', { replace: true });
+      // Don't navigate manually - let the auth state change listener handle it
     }
-
-    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
