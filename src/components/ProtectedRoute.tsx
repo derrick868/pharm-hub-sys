@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+    if (!loading && !user && !hasRedirected.current) {
+      hasRedirected.current = true;
+      navigate('/auth', { replace: true, state: { from: location } });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, location]);
 
   if (loading) {
     return (

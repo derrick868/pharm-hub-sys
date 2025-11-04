@@ -19,11 +19,14 @@ const Auth = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
-    });
+    };
+    
+    checkSession();
   }, [navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -46,7 +49,7 @@ const Auth = () => {
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
 
     setLoading(false);
