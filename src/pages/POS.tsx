@@ -165,13 +165,13 @@ const POS = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Point of Sale</h2>
-        <p className="text-muted-foreground">Process drug sales</p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Point of Sale</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">Process drug sales</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Products Section */}
         <Card>
           <CardHeader>
@@ -187,20 +187,20 @@ const POS = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+            <div className="space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto">
               {filteredDrugs.map(drug => (
                 <div
                   key={drug.id}
-                  className="flex justify-between items-center p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 border rounded-lg hover:bg-accent cursor-pointer"
                   onClick={() => addToCart(drug)}
                 >
-                  <div>
-                    <p className="font-medium">{drug.name}</p>
-                    <p className="text-sm text-muted-foreground">{drug.manufacturer}</p>
-                    <p className="text-sm text-muted-foreground">Stock: {drug.quantity}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{drug.name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{drug.manufacturer}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Stock: {drug.quantity}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold">KSH {drug.selling_price.toFixed(2)}</p>
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <p className="font-bold text-sm sm:text-base">KSH {drug.selling_price.toFixed(2)}</p>
                     <Button size="sm" variant="outline">Add</Button>
                   </div>
                 </div>
@@ -219,16 +219,17 @@ const POS = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {cart.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Cart is empty</p>
+              <p className="text-center text-sm sm:text-base text-muted-foreground py-8">Cart is empty</p>
             ) : (
               <>
+                <div className="overflow-x-auto -mx-6 px-6">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Qty</TableHead>
-                      <TableHead>Total</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Product</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Price</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Qty</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Total</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -236,12 +237,12 @@ const POS = () => {
                     {cart.map(item => (
                       <TableRow key={item.drug.id}>
                         <TableCell>
-                          <div>
-                            <p className="font-medium text-sm">{item.drug.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.drug.manufacturer}</p>
+                          <div className="min-w-[120px]">
+                            <p className="font-medium text-xs sm:text-sm">{item.drug.name}</p>
+                            <p className="text-xs text-muted-foreground hidden sm:block">{item.drug.manufacturer}</p>
                           </div>
                         </TableCell>
-                        <TableCell>KSH {item.drug.selling_price.toFixed(2)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">KSH {item.drug.selling_price.toFixed(2)}</TableCell>
                         <TableCell>
                           <Input
                             type="number"
@@ -249,10 +250,10 @@ const POS = () => {
                             max={item.drug.quantity}
                             value={item.quantity}
                             onChange={(e) => updateQuantity(item.drug.id, parseInt(e.target.value))}
-                            className="w-16"
+                            className="w-14 sm:w-16 text-xs sm:text-sm"
                           />
                         </TableCell>
-                        <TableCell>KSH {(item.drug.selling_price * item.quantity).toFixed(2)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm whitespace-nowrap">KSH {(item.drug.selling_price * item.quantity).toFixed(2)}</TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -266,15 +267,16 @@ const POS = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
 
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="flex justify-between items-center text-lg font-bold">
+                <div className="space-y-3 sm:space-y-4 pt-4 border-t">
+                  <div className="flex justify-between items-center text-base sm:text-lg font-bold">
                     <span>Total:</span>
                     <span>KSH {calculateTotal().toFixed(2)}</span>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Payment Method</label>
+                    <label className="text-xs sm:text-sm font-medium mb-2 block">Payment Method</label>
                     <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                       <SelectTrigger>
                         <SelectValue />

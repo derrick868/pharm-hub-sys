@@ -72,59 +72,61 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
         onOpenChange={setEditDialogOpen}
         onUpdate={onUpdate}
       />
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Manufacturer</TableHead>
-            <TableHead className="text-right">Purchase Price</TableHead>
-            <TableHead className="text-right">Selling Price</TableHead>
-            <TableHead className="text-right">Quantity</TableHead>
-            <TableHead>Expiry Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-xs sm:text-sm whitespace-nowrap">Name</TableHead>
+            <TableHead className="text-xs sm:text-sm whitespace-nowrap hidden md:table-cell">Manufacturer</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Purchase Price</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Selling Price</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm">Qty</TableHead>
+            <TableHead className="text-xs sm:text-sm whitespace-nowrap hidden lg:table-cell">Expiry Date</TableHead>
+            <TableHead className="text-xs sm:text-sm">Status</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {drugs.map((drug) => (
             <TableRow key={drug.id}>
-              <TableCell className="font-medium">{drug.name}</TableCell>
-              <TableCell>{drug.manufacturer}</TableCell>
-              <TableCell className="text-right">KSH {Number(drug.purchase_price).toFixed(2)}</TableCell>
-              <TableCell className="text-right">KSH {Number(drug.selling_price).toFixed(2)}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="font-medium text-xs sm:text-sm">{drug.name}</TableCell>
+              <TableCell className="text-xs sm:text-sm hidden md:table-cell">{drug.manufacturer}</TableCell>
+              <TableCell className="text-right text-xs sm:text-sm whitespace-nowrap">KSH {Number(drug.purchase_price).toFixed(2)}</TableCell>
+              <TableCell className="text-right text-xs sm:text-sm whitespace-nowrap">KSH {Number(drug.selling_price).toFixed(2)}</TableCell>
+              <TableCell className="text-right text-xs sm:text-sm">
                 <span className={isLowStock(drug.quantity, drug.low_stock_threshold) ? 'text-destructive font-semibold' : ''}>
                   {drug.quantity}
                 </span>
               </TableCell>
-              <TableCell>{format(new Date(drug.expiry_date), 'MMM dd, yyyy')}</TableCell>
+              <TableCell className="text-xs sm:text-sm hidden lg:table-cell">{format(new Date(drug.expiry_date), 'MMM dd, yyyy')}</TableCell>
               <TableCell>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   {isLowStock(drug.quantity, drug.low_stock_threshold) && (
-                    <Badge variant="destructive">Low Stock</Badge>
+                    <Badge variant="destructive" className="text-xs">Low Stock</Badge>
                   )}
                   {isExpiringSoon(drug.expiry_date) && (
-                    <Badge variant="outline" className="border-orange-500 text-orange-500">Expiring Soon</Badge>
+                    <Badge variant="outline" className="border-orange-500 text-orange-500 text-xs">Expiring</Badge>
                   )}
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1 sm:gap-2">
                   <Button 
                     size="icon" 
                     variant="ghost"
                     onClick={() => handleEdit(drug)}
+                    className="h-8 w-8"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   <Button 
                     size="icon" 
                     variant="ghost"
                     onClick={() => handleDelete(drug.id)}
                     disabled={deletingId === drug.id}
+                    className="h-8 w-8"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </TableCell>
