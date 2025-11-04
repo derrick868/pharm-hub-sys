@@ -5,19 +5,22 @@ import { useAuth } from './useAuth';
 export type UserRole = 'admin' | 'pharmacist' | 'staff';
 
 export const useUserRole = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 🕒 Wait until auth is finished before checking roles
+    if (authLoading) return;
+
     const fetchRoles = async () => {
       if (!user) {
+        // Don’t set loading false yet; just wait for user to exist
         setRoles([]);
-        setLoading(false);
         return;
       }
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
@@ -28,11 +31,12 @@ export const useUserRole = () => {
       } else {
         setRoles(data?.map((r: any) => r.role as UserRole) || []);
       }
+
       setLoading(false);
     };
 
     fetchRoles();
-  }, [user]);
+  }, [user, authLoading]);
 
   const hasRole = (role: UserRole) => roles.includes(role);
   const isAdmin = hasRole('admin');
