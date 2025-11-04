@@ -10,28 +10,32 @@ export const useUserRole = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🕒 Wait until auth is finished before checking roles
-    if (authLoading) return;
+    if (authLoading) {
+      console.log('[useUserRole] 🕒 Waiting for auth to finish...');
+      return;
+    }
+
+    if (!user) {
+      console.log('[useUserRole] ❌ No user yet — skipping role fetch');
+      setLoading(true);
+      return;
+    }
+
+    console.log('[useUserRole] 🔍 Fetching roles for user:', user.id);
 
     const fetchRoles = async () => {
-      if (!user) {
-        // Don’t set loading false yet; just wait for user to exist
-        setRoles([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error fetching roles:', error);
+        console.error('[useUserRole] ⚠️ Error fetching roles:', error);
         setRoles([]);
       } else {
+        console.log('[useUserRole] ✅ Roles fetched:', data);
         setRoles(data?.map((r: any) => r.role as UserRole) || []);
       }
-
       setLoading(false);
     };
 
