@@ -9,11 +9,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!loading && !user && !hasRedirected.current) {
-      hasRedirected.current = true;
-      navigate('/auth', { replace: true, state: { from: location } });
+    if (!loading && !user) {
+      console.log('[ProtectedRoute] No user, redirecting to /auth');
+      navigate('/auth', { replace: true });
     }
-  }, [user, loading, navigate, location]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (

@@ -15,6 +15,7 @@ import Sales from "./pages/Sales";
 import DoctorAssessment from "./pages/DoctorAssessment";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -28,14 +29,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/home" element={<DashboardLayout><Home /></DashboardLayout>} />
-          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
-          <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />
-          <Route path="/pos" element={<DashboardLayout><POS /></DashboardLayout>} />
-          <Route path="/suppliers" element={<DashboardLayout><Suppliers /></DashboardLayout>} />
-          <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
-          <Route path="/sales" element={<DashboardLayout><Sales /></DashboardLayout>} />
-          <Route path="/assessment" element={<DashboardLayout><DoctorAssessment /></DashboardLayout>} />
+          <Route path="/home" element={<ProtectedRoute><DashboardLayout><Home /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute><DashboardLayout><Inventory /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/pos" element={<ProtectedRoute><DashboardLayout><POS /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/suppliers" element={<ProtectedRoute><DashboardLayout><Suppliers /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><DashboardLayout><Reports /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/sales" element={<ProtectedRoute><DashboardLayout><Sales /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/assessment" element={<ProtectedRoute><DashboardLayout><DoctorAssessment /></DashboardLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
