@@ -1,5 +1,5 @@
 import { Home, Package, ShoppingCart, Users, FileText, LogOut, Stethoscope, DollarSign } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -40,7 +40,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { signOut } = useAuth();
   const { isAdmin } = useUserRole();
+  const navigate = useNavigate();
   const isCollapsed = state === 'collapsed';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <Sidebar className={isCollapsed ? 'w-14' : 'w-64'} collapsible="icon">
@@ -97,7 +103,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut}>
+            <SidebarMenuButton onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
               {!isCollapsed && <span>Sign Out</span>}
             </SidebarMenuButton>

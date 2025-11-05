@@ -18,22 +18,31 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/home', { replace: true });
-      }
-    };
-    
-    checkAuth();
+    let mounted = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && event === 'SIGNED_IN') {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted && session) {
+        console.log('[Auth] Already logged in, redirecting...');
         navigate('/home', { replace: true });
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for sign in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      console.log('[Auth] Auth event:', event);
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log('[Auth] Sign in detected, redirecting...');
+        navigate('/home', { replace: true });
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
