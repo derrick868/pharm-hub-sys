@@ -15,31 +15,37 @@ export const useAuth = () => {
     const init = async () => {
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
+
+      console.log("[useAuth] ✅ Initial session:", data.session);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
-      console.log("[useAuth] ✅ Initial session:", data.session);
     };
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // ✅ Auth state listener (does NOT auto-navigate)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-
       console.log("[useAuth] 🔄 Auth state changed:", _event);
-      setSession(session);
-      setUser(session?.user ?? null);
 
+      // Avoid redirects for TOKEN_REFRESHED
       if (_event === "SIGNED_OUT") {
+        setSession(null);
+        setUser(null);
         navigate("/auth");
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
       }
-
       setLoading(false);
     });
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [navigate]);
 
