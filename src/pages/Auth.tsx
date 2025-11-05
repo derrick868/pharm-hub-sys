@@ -18,17 +18,18 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Listen for auth state changes and redirect when logged in
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/home', { replace: true });
+      }
+    };
+    
+    checkAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
-        navigate('/dashboard', { replace: true });
-      }
-    });
-
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/dashboard', { replace: true });
+        navigate('/home', { replace: true });
       }
     });
 
@@ -56,7 +57,6 @@ const Auth = () => {
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
-      // Don't navigate manually - let the auth state change listener handle it
     }
   };
 

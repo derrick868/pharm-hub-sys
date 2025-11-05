@@ -24,22 +24,14 @@ export const useAuth = () => {
 
     init();
 
-    // ✅ Auth state listener (does NOT auto-navigate)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       console.log("[useAuth] 🔄 Auth state changed:", _event);
 
-      // Avoid redirects for TOKEN_REFRESHED
-      if (_event === "SIGNED_OUT") {
-        setSession(null);
-        setUser(null);
-        navigate("/auth");
-      } else {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
@@ -47,10 +39,12 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
     navigate("/auth");
   };
 

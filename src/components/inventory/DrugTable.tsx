@@ -39,12 +39,6 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
 const handleDelete = async (id: string) => {
   setDeletingId(id);
 
-  const relatedTables = ['sale_items', 'sales', 'pos_items']; // add or adjust
-
-  for (const table of relatedTables) {
-    await supabase.from(table).update({ drug_id: null }).eq('drug_id', id);
-  }
-
   const { error } = await supabase.from('drugs').delete().eq('id', id);
 
   if (error) {
