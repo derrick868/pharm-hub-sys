@@ -8,6 +8,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
-    autoRefreshToken: false, // 🔴 Stop background refresh loop
+    autoRefreshToken: true, // 🔴 Stop background refresh loop
   },
 })
