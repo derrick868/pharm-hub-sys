@@ -10,33 +10,66 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const loadSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
       if (!mounted) return;
-      console.log("[useAuth] ✅ Initial session:", session);
-      setSession(session);
-      setUser(session?.user ?? null);
+      if (error) console.error("[useAuth] ❌ Error getting session:", error);
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
       setLoading(false);
-    });
+      console.log("[useAuth] ✅ Initial session:", data.session);
+    };
 
-    // Listen for auth changes
+    loadSession();
+
+    // Listen for auth state changes (sign-in/out/refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      console.log("[useAuth] 🔄 Auth state changed:", _event);
+      console.log("[useAuth] 🔄 Auth state changed:", event);
       setSession(session);
       setUser(session?.user ?? null);
+
+      if (event === "TOKEN_REFRESHED") {
+        console.log("[useAuth] ♻️ Token refreshed automatically");
+      } else if (event === "SIGNED_OUT") {
+        console.warn("[useAuth] 🚪 Signed out");
+        localStorage.removeItem("supabase.auth.token");
+      }
     });
+
+    // Detect auth change across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "supabase.auth.token") {
+        console.log("[useAuth] 🔍 Detected auth change in another tab");
+        loadSession();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    // Periodic refresh safety (every 30 mins)
+    const refreshInterval = setInterval(async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.access_token) {
+        console.log("[useAuth] ⏰ Periodic refresh check OK");
+      } else {
+        console.warn("[useAuth] ⚠️ No active session found, reloading...");
+        loadSession();
+      }
+    }, 30 * 60 * 1000);
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(refreshInterval);
     };
   }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem("supabase.auth.token");
   };
 
   return { user, session, loading, signOut };
