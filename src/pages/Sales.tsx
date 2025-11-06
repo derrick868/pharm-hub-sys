@@ -22,7 +22,7 @@ interface Sale {
   total_amount: number;
   payment_method: string;
   user_id: string;
-  profiles?: { full_name: string } | { full_name: string }[] | null;
+  profiles?: { full_name: string } | null;
 }
 
 interface SaleItem {
@@ -31,7 +31,7 @@ interface SaleItem {
   unit_price: number;
   subtotal: number;
   drug_id: string;
-  drugs: { name: string; manufacturer: string } | { name: string; manufacturer: string }[] | null;
+  drugs?: { name: string; manufacturer: string } | null;
 }
 
 const Sales = () => {
@@ -56,7 +56,7 @@ const Sales = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles(full_name)
+          profiles:user_id(*)  -- join via foreign key
         `)
         .order('created_at', { ascending: false });
 
@@ -64,7 +64,12 @@ const Sales = () => {
         console.error('Error fetching sales:', error);
         toast.error('Failed to fetch sales');
       } else {
-        setSales(data || []);
+        // Ensure profiles is always a single object
+        const formattedData = data?.map((sale: any) => ({
+          ...sale,
+          profiles: sale.profiles || null,
+        })) || [];
+        setSales(formattedData);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -84,7 +89,7 @@ const Sales = () => {
           unit_price,
           subtotal,
           drug_id,
-          drugs(name, manufacturer)
+          drugs:drug_id(*)  -- join via foreign key
         `)
         .eq('sale_id', saleId);
 
@@ -92,7 +97,12 @@ const Sales = () => {
         console.error('Error fetching sale items:', error);
         toast.error('Failed to fetch sale items');
       } else {
-        setSaleItems(data || []);
+        // Ensure drugs is always a single object
+        const formattedItems = data?.map((item: any) => ({
+          ...item,
+          drugs: item.drugs || null,
+        })) || [];
+        setSaleItems(formattedItems);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -148,7 +158,7 @@ const Sales = () => {
                         {format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm">
-                        {Array.isArray(sale.profiles) ? sale.profiles[0]?.full_name : sale.profiles?.full_name || 'N/A'}
+                        {sale.profiles?.full_name || 'N/A'}
                       </TableCell>
                       <TableCell className="capitalize text-xs sm:text-sm">{sale.payment_method || 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium text-xs sm:text-sm whitespace-nowrap">
@@ -178,7 +188,7 @@ const Sales = () => {
                                 <div>
                                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">Staff Member</p>
                                   <p className="font-medium text-sm sm:text-base">
-                                    {Array.isArray(sale.profiles) ? sale.profiles[0]?.full_name : sale.profiles?.full_name || 'N/A'}
+                                    {sale.profiles?.full_name || 'N/A'}
                                   </p>
                                 </div>
                                 <div>
@@ -209,7 +219,7 @@ const Sales = () => {
                                       </TableHeader>
                                       <TableBody>
                                          {saleItems.map((item) => {
-                                           const drug = Array.isArray(item.drugs) ? item.drugs[0] : item.drugs;
+                                           const drug = item.drugs;
                                            return (
                                           <TableRow key={item.id}>
                                             <TableCell className="font-medium text-xs sm:text-sm">
