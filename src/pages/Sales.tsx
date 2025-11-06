@@ -22,7 +22,7 @@ interface Sale {
   total_amount: number;
   payment_method: string;
   user_id: string;
-  profiles?: { full_name: string };
+  profiles?: { full_name: string } | { full_name: string }[] | null;
 }
 
 interface SaleItem {
@@ -30,7 +30,8 @@ interface SaleItem {
   quantity: number;
   unit_price: number;
   subtotal: number;
-  drugs: { name: string; manufacturer: string };
+  drug_id: string;
+  drugs: { name: string; manufacturer: string } | { name: string; manufacturer: string }[] | null;
 }
 
 const Sales = () => {
@@ -55,7 +56,7 @@ const Sales = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles!sales_user_id_profiles_fkey(full_name)
+          profiles(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -82,6 +83,7 @@ const Sales = () => {
           quantity,
           unit_price,
           subtotal,
+          drug_id,
           drugs(name, manufacturer)
         `)
         .eq('sale_id', saleId);
@@ -145,7 +147,9 @@ const Sales = () => {
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                         {format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{sale.profiles?.full_name || 'N/A'}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        {Array.isArray(sale.profiles) ? sale.profiles[0]?.full_name : sale.profiles?.full_name || 'N/A'}
+                      </TableCell>
                       <TableCell className="capitalize text-xs sm:text-sm">{sale.payment_method || 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium text-xs sm:text-sm whitespace-nowrap">
                         KSH {Number(sale.total_amount).toFixed(2)}
@@ -173,7 +177,9 @@ const Sales = () => {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">Staff Member</p>
-                                  <p className="font-medium text-sm sm:text-base">{sale.profiles?.full_name || 'N/A'}</p>
+                                  <p className="font-medium text-sm sm:text-base">
+                                    {Array.isArray(sale.profiles) ? sale.profiles[0]?.full_name : sale.profiles?.full_name || 'N/A'}
+                                  </p>
                                 </div>
                                 <div>
                                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">Payment Method</p>
@@ -202,13 +208,15 @@ const Sales = () => {
                                         </TableRow>
                                       </TableHeader>
                                       <TableBody>
-                                        {saleItems.map((item) => (
+                                         {saleItems.map((item) => {
+                                           const drug = Array.isArray(item.drugs) ? item.drugs[0] : item.drugs;
+                                           return (
                                           <TableRow key={item.id}>
                                             <TableCell className="font-medium text-xs sm:text-sm">
-                                              {(item as any).drugs?.name || 'N/A'}
+                                              {drug?.name || 'N/A'}
                                             </TableCell>
                                             <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                                              {(item as any).drugs?.manufacturer || 'N/A'}
+                                              {drug?.manufacturer || 'N/A'}
                                             </TableCell>
                                             <TableCell className="text-right text-xs sm:text-sm">{item.quantity}</TableCell>
                                              <TableCell className="text-right text-xs sm:text-sm whitespace-nowrap">
@@ -216,9 +224,10 @@ const Sales = () => {
                                              </TableCell>
                                              <TableCell className="text-right font-medium text-xs sm:text-sm whitespace-nowrap">
                                               KSH {Number(item.subtotal).toFixed(2)}
-                                             </TableCell>
-                                          </TableRow>
-                                        ))}
+                                              </TableCell>
+                                           </TableRow>
+                                         );
+                                         })}
                                       </TableBody>
                                     </Table>
                                   </div>
