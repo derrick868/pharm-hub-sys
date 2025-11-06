@@ -48,28 +48,15 @@ const Sales = () => {
   const fetchSales = async () => {
     setLoading(true);
     try {
+      // Manually join the sales and profiles tables
       const { data, error } = await supabase
-        .from('sales')
-        .select(`
-          id,
-          created_at,
-          total_amount,
-          payment_method,
-          user_id,
-          profiles:user_id!inner(*) -- join via foreign key
-        `)
-        .order('created_at', { ascending: false });
+        .rpc('fetch_sales_with_profiles');  // Using a custom stored procedure or function in Supabase
 
       if (error) {
         console.error('Error fetching sales:', error);
         toast.error('Failed to fetch sales');
       } else {
-        // Ensure profiles is always a single object
-        const formattedData = data?.map((sale: any) => ({
-          ...sale,
-          profiles: sale.profiles || null,
-        })) || [];
-        setSales(formattedData);
+        setSales(data || []);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -83,26 +70,14 @@ const Sales = () => {
     try {
       const { data, error } = await supabase
         .from('sale_items')
-        .select(`
-          id,
-          quantity,
-          unit_price,
-          subtotal,
-          drug_id,
-          drugs:drug_id(*)  -- join via foreign key
-        `)
+        .select(`id, quantity, unit_price, subtotal, drug_id, drugs:drug_id(*)`)  // Force manual join for drugs
         .eq('sale_id', saleId);
 
       if (error) {
         console.error('Error fetching sale items:', error);
         toast.error('Failed to fetch sale items');
       } else {
-        // Ensure drugs is always a single object
-        const formattedItems = data?.map((item: any) => ({
-          ...item,
-          drugs: item.drugs || null,
-        })) || [];
-        setSaleItems(formattedItems);
+        setSaleItems(data || []);
       }
     } catch (error) {
       console.error('Error:', error);
