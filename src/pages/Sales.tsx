@@ -35,28 +35,34 @@ const Sales = () => {
 
   useEffect(() => {
     const fetchSalesData = async () => {
-      setLoading(true);
-      
-      // Fetch sales data for the last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const { data: salesData, error: salesError } = await supabase
-        .from('sales')
-        .select('id, created_at, total_amount, payment_method, user_id, profiles:user_id!inner(*)')
-        .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within the last 30 days
-        .order('created_at', { ascending: false });
+  setLoading(true);
 
-      if (salesError) {
-        console.error('Error fetching sales:', salesError);
-      } else {
-        setSales(salesData || []);
-      }
+  // Fetch sales data for the last 30 days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const { data: salesData, error: salesError } = await supabase
+    .from('sales')
+    .select(`
+      id, 
+      created_at, 
+      total_amount, 
+      payment_method, 
+      user_id,
+      profiles:profiles_user_id_fkey(full_name)  // Ensure to use the correct foreign key here (profiles_user_id_fkey)
+    `)
+    .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within the last 30 days
+    .order('created_at', { ascending: false });
 
-      setLoading(false);
-    };
+  if (salesError) {
+    console.error('Error fetching sales:', salesError);
+  } else {
+    setSales(salesData || []);
+  }
 
-    fetchSalesData();
-  }, []);
+  setLoading(false);
+};
+
 
   const fetchSaleItems = async (saleId: string) => {
     setItemsLoading(true);
