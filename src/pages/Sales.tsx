@@ -7,6 +7,7 @@ import { Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface Sale {
   id: string;
@@ -33,61 +34,73 @@ const Sales = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [itemsLoading, setItemsLoading] = useState(false);
 
+  // Fetch Sales Data
   useEffect(() => {
     const fetchSalesData = async () => {
-  setLoading(true);
+      setLoading(true);
+      try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // Fetch sales data for the last 30 days
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  const { data: salesData, error: salesError } = await supabase
-    .from('sales')
-    .select(`
-      id, 
-      created_at, 
-      total_amount, 
-      payment_method, 
-      user_id,
-      profiles:profiles_user_id_fkey(full_name)  // Ensure to use the correct foreign key here (profiles_user_id_fkey)
-    `)
-    .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within the last 30 days
-    .order('created_at', { ascending: false });
+        // Fetch sales within the last 30 days, including profiles via correct foreign key
+        const { data: salesData, error: salesError } = await supabase
+          .from('sales')
+          .select(`
+            id, 
+            created_at, 
+            total_amount, 
+            payment_method, 
+            user_id,
+            profiles:profiles_user_id_fkey(full_name)  // Make sure to use correct foreign key
+          `)
+          .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within last 30 days
+          .order('created_at', { ascending: false });
 
-  if (salesError) {
-    console.error('Error fetching sales:', salesError);
-  } else {
-    setSales(salesData || []);
-  }
+        if (salesError) {
+          console.error('Error fetching sales:', salesError);
+          toast.error('Error fetching sales data');
+        } else {
+          setSales(salesData || []);
+        }
+      } catch (error) {
+        console.error('Error fetching sales:', error);
+        toast.error('An error occurred while fetching sales data');
+      }
+      setLoading(false);
+    };
 
-  setLoading(false);
-};
+    fetchSalesData();
+  }, []);
 
-
+  // Fetch Sale Items
   const fetchSaleItems = async (saleId: string) => {
     setItemsLoading(true);
     try {
       const { data, error } = await supabase
         .from('sale_items')
-        .select('id, quantity, unit_price, subtotal, drug_id, drugs:drug_id(*)')
+        .select('id, quantity, unit_price, subtotal, drug_id, drugs:drug_id(*)')  // Force manual join for drugs
         .eq('sale_id', saleId);
 
       if (error) {
         console.error('Error fetching sale items:', error);
+        toast.error('Error fetching sale items');
       } else {
         setSaleItems(data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching sale items:', error);
+      toast.error('An error occurred while fetching sale items');
     }
     setItemsLoading(false);
   };
 
+  // Handle opening Sale details dialog
   const handleViewDetails = (sale: Sale) => {
     setSelectedSale(sale);
     fetchSaleItems(sale.id);
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
