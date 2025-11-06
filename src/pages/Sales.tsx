@@ -56,7 +56,7 @@ const Sales = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles:user_id(*)  -- join via foreign key
+          profiles!:user_id(*)  -- join via foreign key
         `)
         .order('created_at', { ascending: false });
 
