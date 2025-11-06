@@ -51,7 +51,7 @@ const Sales = () => {
             total_amount, 
             payment_method, 
             user_id,
-            profiles:profiles_user_id_fkey(full_name)  // Make sure to use correct foreign key
+            profiles:profiles_user_id_fk(full_name)  // Make sure to use correct foreign key
           `)
           .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within last 30 days
           .order('created_at', { ascending: false });
