@@ -27,9 +27,7 @@ export const useAuth = () => {
         console.log("[useAuth] Event:", event);
         setSession(session);
         setUser(session?.user ?? null);
-
-        // Reset loading once session is confirmed
-        if (loading) setLoading(false);
+        setLoading(false); // Always set loading to false on any auth change
       }
     );
 
