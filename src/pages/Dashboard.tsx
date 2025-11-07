@@ -60,7 +60,7 @@ const Dashboard = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-muted-foreground">
-          Welcome to your pharmacy management system
+          Welcome to Amiko plas medical clinic
         </p>
       </div>
 
