@@ -45,7 +45,7 @@ const Reports = () => {
           total_amount,
           payment_method,
           user_id,
-          profiles(full_name)
+          profiles!sales_user_id_fkey(full_name)
         `)
         .gte('created_at', new Date(dateFrom).toISOString())
         .lte('created_at', new Date(dateTo + 'T23:59:59').toISOString())
