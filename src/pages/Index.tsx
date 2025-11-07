@@ -8,19 +8,19 @@ const Index = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
 
-useEffect(() => {
-  const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      navigate('/dashboard'); // Always go to dashboard if logged in
-    }
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
-    setChecking(false);
-  };
+      if (session) {
+        navigate('/dashboard'); // Always go to dashboard if logged in
+      }
 
-  checkSession();
-}, [navigate]);
+      setChecking(false);
+    };
+
+    checkSession();
+  }, [navigate]);
 
   if (checking) {
     return (
@@ -38,10 +38,13 @@ useEffect(() => {
             <Pill className="h-16 w-16 text-primary" />
           </div>
         </div>
-        <h1 className="text-5xl font-bold mb-4">Pharmacy Management System</h1>
+
+        {/* Updated Clinic Branding */}
+        <h1 className="text-5xl font-bold mb-4">AMIKO PLAS MEDICAL CLINIC</h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Streamline your pharmacy operations with our comprehensive management solution
+          Providing quality healthcare and pharmaceutical services with compassion and efficiency.
         </p>
+
         <div className="pt-6">
           <Button size="lg" onClick={() => navigate('/auth')}>
             Get Started
