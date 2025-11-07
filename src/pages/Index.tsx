@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import amikoLogo from '@/assets/amiko.png';
+
+
+
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,7 +40,7 @@ const Index = () => {
         <div className="flex justify-center mb-8">
           <div className="p-6 bg-primary/20 rounded-full">
             <img
-              src="/amiko.png"
+              src={amikoLogo}
               alt="AMIKO PLAS MEDICAL CLINIC logo"
               className="h-16 w-16 object-contain rounded-full"
             />
