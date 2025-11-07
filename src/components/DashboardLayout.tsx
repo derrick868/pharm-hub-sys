@@ -17,7 +17,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             <header className="h-14 border-b flex items-center justify-between px-3 sm:px-4 lg:px-6 bg-card">
               <div className="flex items-center min-w-0">
                 <SidebarTrigger />
-                <h1 className="ml-2 sm:ml-4 font-semibold text-sm sm:text-base lg:text-lg truncate">Pharmacy Management System</h1>
+                <h1 className="ml-2 sm:ml-4 font-semibold text-sm sm:text-base lg:text-lg truncate"> Amiko plas medical clinic</h1>
               </div>
               <Button variant="outline" onClick={signOut} className="ml-2 shrink-0">
                 <LogOut className="h-4 w-4 sm:mr-2" />
