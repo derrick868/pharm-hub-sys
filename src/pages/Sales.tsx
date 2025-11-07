@@ -50,7 +50,7 @@ const Sales = () => {
             total_amount, 
             payment_method, 
             user_id,
-            profiles(full_name)
+            profiles!sales_user_id_fkey(full_name)
           `)
           .gte('created_at', thirtyDaysAgo.toISOString())
           .order('created_at', { ascending: false });
@@ -77,7 +77,7 @@ const Sales = () => {
     try {
       const { data, error } = await supabase
         .from('sale_items')
-        .select('id, quantity, unit_price, subtotal, drug_id, drugs(name, manufacturer)')
+        .select('id, quantity, unit_price, subtotal, drug_id, drugs!sale_items_drug_id_fkey(name, manufacturer)')
         .eq('sale_id', saleId);
 
       if (error) {
