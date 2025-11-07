@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Pill } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
@@ -33,13 +32,18 @@ const Index = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">
       <div className="text-center space-y-6 p-8">
+        {/* Logo Section */}
         <div className="flex justify-center mb-8">
           <div className="p-6 bg-primary/20 rounded-full">
-            <Pill className="h-16 w-16 text-primary" />
+            <img
+              src="/amiko.png"
+              alt="AMIKO PLAS MEDICAL CLINIC logo"
+              className="h-16 w-16 object-contain rounded-full"
+            />
           </div>
         </div>
 
-        {/* Updated Clinic Branding */}
+        {/* Clinic Name and Description */}
         <h1 className="text-5xl font-bold mb-4">AMIKO PLAS MEDICAL CLINIC</h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
           Providing quality healthcare and pharmaceutical services with compassion and efficiency.
