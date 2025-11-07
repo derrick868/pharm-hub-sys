@@ -111,7 +111,7 @@ const Auth = () => {
               {/* <Pill className="h-8 w-8 text-primary" /> */}
               
               {/* Option 2: Use your clinic icon */}
-              <img src="/icon.png" alt="AMIKO PLAS logo" className="h-10 w-10 rounded-full object-cover" />
+              <img src="/amiko.png" alt="AMIKO PLAS logo" className="h-10 w-10 rounded-full object-cover" />
             </div>
           </div>
 
