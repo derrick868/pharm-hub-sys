@@ -36,7 +36,7 @@ const Index = () => {
         <div className="flex justify-center mb-8">
           <div className="p-6 bg-primary/20 rounded-full">
             <img
-              src={`${import.meta.env.BASE_URL}amiko.png`}
+              src="/amiko.png"
               alt="AMIKO PLAS MEDICAL CLINIC logo"
               className="h-16 w-16 object-contain rounded-full"
             />
