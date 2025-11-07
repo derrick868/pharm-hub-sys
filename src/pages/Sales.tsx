@@ -115,17 +115,16 @@ const Sales = () => {
         <p className="text-muted-foreground">View all sales transactions</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {sales.length === 0 ? (
-          <p className="text-center text-sm sm:text-base text-muted-foreground p-8">No sales found in the last 30 days.</p>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Sales (Last 30 Days)</CardTitle>
-              <CardDescription>Summary of all sales transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
+      {sales.length === 0 ? (
+        <p className="text-center text-sm sm:text-base text-muted-foreground p-8">No sales found in the last 30 days.</p>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Sales (Last 30 Days)</CardTitle>
+            <CardDescription>Summary of all sales transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs sm:text-sm">Date & Time</TableHead>
@@ -230,7 +229,6 @@ const Sales = () => {
             </CardContent>
           </Card>
         )}
-      </div>
     </div>
   );
 };
