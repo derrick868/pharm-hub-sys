@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Pill } from 'lucide-react';
+import amikoLogo from '@/assets/amiko.png';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -111,7 +112,7 @@ const Auth = () => {
               {/* <Pill className="h-8 w-8 text-primary" /> */}
               
               {/* Option 2: Use your clinic icon */}
-              <img src="/amiko.png" alt="AMIKO PLAS logo" className="h-10 w-10 rounded-full object-cover" />
+              <img src={amikoLogo} alt="AMIKO PLAS logo" className="h-10 w-10 rounded-full object-cover" />
             </div>
           </div>
 
