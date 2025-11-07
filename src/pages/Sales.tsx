@@ -15,7 +15,7 @@ interface Sale {
   total_amount: number;
   payment_method: string;
   user_id: string;
-  profiles?: { full_name: string } | null;
+  profiles?: { full_name: string }[] | { full_name: string } | null;
 }
 
 interface SaleItem {
@@ -24,7 +24,7 @@ interface SaleItem {
   unit_price: number;
   subtotal: number;
   drug_id: string;
-  drugs?: { name: string; manufacturer: string } | null;
+  drugs?: { name: string; manufacturer: string }[] | { name: string; manufacturer: string } | null;
 }
 
 const Sales = () => {
@@ -42,7 +42,6 @@ const Sales = () => {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        // Fetch sales within the last 30 days, including profiles via correct foreign key
         const { data: salesData, error: salesError } = await supabase
           .from('sales')
           .select(`
@@ -51,9 +50,9 @@ const Sales = () => {
             total_amount, 
             payment_method, 
             user_id,
-            profiles:profiles_user_id_fk(full_name)  // Make sure to use correct foreign key
+            profiles(full_name)
           `)
-          .gte('created_at', thirtyDaysAgo.toISOString())  // Get sales within last 30 days
+          .gte('created_at', thirtyDaysAgo.toISOString())
           .order('created_at', { ascending: false });
 
         if (salesError) {
@@ -78,7 +77,7 @@ const Sales = () => {
     try {
       const { data, error } = await supabase
         .from('sale_items')
-        .select('id, quantity, unit_price, subtotal, drug_id, drugs:drug_id(*)')  // Force manual join for drugs
+        .select('id, quantity, unit_price, subtotal, drug_id, drugs(name, manufacturer)')
         .eq('sale_id', saleId);
 
       if (error) {
@@ -142,7 +141,11 @@ const Sales = () => {
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                         {format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{sale.profiles?.full_name || 'N/A'}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        {Array.isArray(sale.profiles)
+                          ? sale.profiles[0]?.full_name || 'N/A'
+                          : sale.profiles?.full_name || 'N/A'}
+                      </TableCell>
                       <TableCell className="capitalize text-xs sm:text-sm">{sale.payment_method || 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium text-xs sm:text-sm">
                         KSH {Number(sale.total_amount).toFixed(2)}
@@ -162,7 +165,11 @@ const Sales = () => {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                   <p className="text-xs sm:text-sm">Staff Member</p>
-                                  <p className="font-medium">{sale.profiles?.full_name || 'N/A'}</p>
+                                  <p className="font-medium">
+                                    {Array.isArray(sale.profiles)
+                                      ? sale.profiles[0]?.full_name || 'N/A'
+                                      : sale.profiles?.full_name || 'N/A'}
+                                  </p>
                                 </div>
                                 <div>
                                   <p className="text-xs sm:text-sm">Payment Method</p>
@@ -186,19 +193,22 @@ const Sales = () => {
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                      {saleItems.map((item) => (
-                                        <TableRow key={item.id}>
-                                          <TableCell>{item.drugs?.name || 'N/A'}</TableCell>
-                                          <TableCell>{item.drugs?.manufacturer || 'N/A'}</TableCell>
-                                          <TableCell className="text-right">{item.quantity}</TableCell>
-                                          <TableCell className="text-right">
-                                            KSH {Number(item.unit_price).toFixed(2)}
-                                          </TableCell>
-                                          <TableCell className="text-right">
-                                            KSH {Number(item.subtotal).toFixed(2)}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
+                                      {saleItems.map((item) => {
+                                        const drugData = Array.isArray(item.drugs) ? item.drugs[0] : item.drugs;
+                                        return (
+                                          <TableRow key={item.id}>
+                                            <TableCell>{drugData?.name || 'N/A'}</TableCell>
+                                            <TableCell>{drugData?.manufacturer || 'N/A'}</TableCell>
+                                            <TableCell className="text-right">{item.quantity}</TableCell>
+                                            <TableCell className="text-right">
+                                              KSH {Number(item.unit_price).toFixed(2)}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                              KSH {Number(item.subtotal).toFixed(2)}
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
                                     </TableBody>
                                   </Table>
                                 )}

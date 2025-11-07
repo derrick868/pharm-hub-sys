@@ -7,32 +7,51 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
+    let mounted = true;
 
     const getInitialSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
 
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+        if (error) {
+          console.error("[useAuth] Session error:", error);
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+        }
+      } catch (error) {
+        console.error("[useAuth] Failed to get session:", error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
 
     getInitialSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!active) return;
+      (event, currentSession) => {
+        if (!mounted) return;
 
-        console.log("[useAuth] Event:", event);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false); // Always set loading to false on any auth change
+        console.log("[useAuth] Event:", event, "Session:", !!currentSession);
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setLoading(false);
       }
     );
 
     return () => {
-      active = false;
+      mounted = false;
       listener.subscription.unsubscribe();
     };
   }, []);
