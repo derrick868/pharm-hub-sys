@@ -1,2 +1,4 @@
 /assets/*    /assets/:splat   200
 /*            /index.html      200!
+/amiko.png  /amiko.png  200
+
