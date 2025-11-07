@@ -105,12 +105,18 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
+            {/* Replace Pill icon with your clinic logo */}
             <div className="p-3 bg-primary/10 rounded-full">
-              <Pill className="h-8 w-8 text-primary" />
+              {/* Option 1: Keep icon */}
+              {/* <Pill className="h-8 w-8 text-primary" /> */}
+              
+              {/* Option 2: Use your clinic icon */}
+              <img src="/icon.png" alt="AMIKO PLAS logo" className="h-10 w-10 rounded-full object-cover" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Pharmacy Management</CardTitle>
-          <CardDescription>Sign in to manage your pharmacy</CardDescription>
+
+          <CardTitle className="text-2xl font-bold">AMIKO PLAS MEDICAL CLINIC</CardTitle>
+          <CardDescription>Sign in to access your clinic dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -118,6 +124,7 @@ const Auth = () => {
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -125,7 +132,7 @@ const Auth = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="pharmacist@example.com"
+                    placeholder="user@amikoplasclinic.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -146,6 +153,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
+
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
@@ -153,7 +161,7 @@ const Auth = () => {
                   <Input
                     id="fullname"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Jane Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
@@ -164,7 +172,7 @@ const Auth = () => {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="pharmacist@example.com"
+                    placeholder="user@amikoplasclinic.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
