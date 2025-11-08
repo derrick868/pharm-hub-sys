@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,6 +22,7 @@ interface Drug {
   quantity: number;
   low_stock_threshold: number;
   expiry_date: string;
+  supplier_id?: string | null;
 }
 
 interface EditDrugDialogProps {
@@ -39,8 +41,18 @@ export const EditDrugDialog = ({ drug, open, onOpenChange, onUpdate }: EditDrugD
     quantity: '',
     low_stock_threshold: '',
     expiry_date: '',
+    supplier_id: '',
   });
   const [loading, setLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      const { data } = await supabase.from('suppliers').select('id, name').order('name');
+      if (data) setSuppliers(data);
+    };
+    if (open) fetchSuppliers();
+  }, [open]);
 
   useEffect(() => {
     if (drug) {
@@ -52,6 +64,7 @@ export const EditDrugDialog = ({ drug, open, onOpenChange, onUpdate }: EditDrugD
         quantity: drug.quantity.toString(),
         low_stock_threshold: drug.low_stock_threshold.toString(),
         expiry_date: drug.expiry_date,
+        supplier_id: drug.supplier_id || '',
       });
     }
   }, [drug]);
@@ -71,6 +84,7 @@ export const EditDrugDialog = ({ drug, open, onOpenChange, onUpdate }: EditDrugD
         quantity: parseInt(formData.quantity),
         low_stock_threshold: parseInt(formData.low_stock_threshold),
         expiry_date: formData.expiry_date,
+        supplier_id: formData.supplier_id || null,
       })
       .eq('id', drug.id);
 
@@ -170,6 +184,22 @@ export const EditDrugDialog = ({ drug, open, onOpenChange, onUpdate }: EditDrugD
               onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-supplier">Supplier (Optional)</Label>
+            <Select value={formData.supplier_id} onValueChange={(value) => setFormData({ ...formData, supplier_id: value })}>
+              <SelectTrigger id="edit-supplier">
+                <SelectValue placeholder="Select a supplier" />
+              </SelectTrigger>
+              <SelectContent>
+                {suppliers.map((supplier) => (
+                  <SelectItem key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2">

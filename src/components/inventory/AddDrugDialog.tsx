@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +15,7 @@ interface AddDrugDialogProps {
 
 export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -24,7 +26,16 @@ export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogPr
     quantity: '',
     lowStockThreshold: '10',
     expiryDate: '',
+    supplierId: '',
   });
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      const { data } = await supabase.from('suppliers').select('id, name').order('name');
+      if (data) setSuppliers(data);
+    };
+    if (open) fetchSuppliers();
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +49,7 @@ export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogPr
       quantity: parseInt(formData.quantity),
       low_stock_threshold: parseInt(formData.lowStockThreshold),
       expiry_date: formData.expiryDate,
+      supplier_id: formData.supplierId || null,
     });
 
     if (error) {
@@ -59,6 +71,7 @@ export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogPr
         quantity: '',
         lowStockThreshold: '10',
         expiryDate: '',
+        supplierId: '',
       });
       onOpenChange(false);
       onSuccess?.();
@@ -148,6 +161,21 @@ export const AddDrugDialog = ({ open, onOpenChange, onSuccess }: AddDrugDialogPr
                 onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                 required
               />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="supplier">Supplier (Optional)</Label>
+              <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
+                <SelectTrigger id="supplier">
+                  <SelectValue placeholder="Select a supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">
