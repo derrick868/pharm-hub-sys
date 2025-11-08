@@ -3,10 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye } from 'lucide-react';
+import { Eye, Search, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 interface Sale {
@@ -33,6 +35,13 @@ const Sales = () => {
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    payment_method: '',
+    total_amount: 0,
+  });
 
   // Fetch Sales Data
   useEffect(() => {
@@ -99,6 +108,91 @@ const Sales = () => {
     fetchSaleItems(sale.id);
   };
 
+  // Handle edit
+  const handleEdit = (sale: Sale) => {
+    setEditingSale(sale);
+    setEditFormData({
+      payment_method: sale.payment_method || '',
+      total_amount: Number(sale.total_amount),
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Handle delete
+  const handleDelete = async (saleId: string) => {
+    if (!confirm('Are you sure you want to delete this sale? This action cannot be undone.')) return;
+
+    try {
+      // Delete sale items first (foreign key constraint)
+      const { error: itemsError } = await supabase
+        .from('sale_items')
+        .delete()
+        .eq('sale_id', saleId);
+
+      if (itemsError) throw itemsError;
+
+      // Delete sale
+      const { error: saleError } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', saleId);
+
+      if (saleError) throw saleError;
+
+      toast.success('Sale deleted successfully');
+      setSales(sales.filter(s => s.id !== saleId));
+    } catch (error) {
+      console.error('Error deleting sale:', error);
+      toast.error('Failed to delete sale');
+    }
+  };
+
+  // Handle update sale
+  const handleUpdateSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSale) return;
+
+    try {
+      const { error } = await supabase
+        .from('sales')
+        .update({
+          payment_method: editFormData.payment_method,
+          total_amount: editFormData.total_amount,
+        })
+        .eq('id', editingSale.id);
+
+      if (error) throw error;
+
+      toast.success('Sale updated successfully');
+      setSales(sales.map(s => 
+        s.id === editingSale.id 
+          ? { ...s, payment_method: editFormData.payment_method, total_amount: editFormData.total_amount }
+          : s
+      ));
+      setEditDialogOpen(false);
+      setEditingSale(null);
+    } catch (error) {
+      console.error('Error updating sale:', error);
+      toast.error('Failed to update sale');
+    }
+  };
+
+  // Filter sales
+  const filteredSales = sales.filter(sale => {
+    const searchLower = searchQuery.toLowerCase();
+    const staffName = Array.isArray(sale.profiles)
+      ? sale.profiles[0]?.full_name || ''
+      : sale.profiles?.full_name || '';
+    const paymentMethod = sale.payment_method || '';
+    const amount = sale.total_amount.toString();
+    
+    return (
+      staffName.toLowerCase().includes(searchLower) ||
+      paymentMethod.toLowerCase().includes(searchLower) ||
+      amount.includes(searchLower)
+    );
+  });
+
   // Loading state
   if (loading) {
     return (
@@ -113,6 +207,18 @@ const Sales = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Sales History</h2>
         <p className="text-muted-foreground">View all sales transactions</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by staff, payment method, or amount..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {sales.length === 0 ? (
@@ -135,7 +241,7 @@ const Sales = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sales.map((sale) => (
+                  {filteredSales.map((sale) => (
                     <TableRow key={sale.id}>
                       <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                         {format(new Date(sale.created_at), 'MMM dd, yyyy HH:mm')}
@@ -150,12 +256,13 @@ const Sales = () => {
                         KSH {Number(sale.total_amount).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDetails(sale)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
+                        <div className="flex justify-end gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm" onClick={() => handleViewDetails(sale)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Sale Details</DialogTitle>
@@ -221,6 +328,13 @@ const Sales = () => {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(sale)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(sale.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -229,6 +343,45 @@ const Sales = () => {
             </CardContent>
           </Card>
         )}
+
+      {/* Edit Sale Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Sale</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSale} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="payment_method">Payment Method</Label>
+              <Input
+                id="payment_method"
+                value={editFormData.payment_method}
+                onChange={(e) => setEditFormData({ ...editFormData, payment_method: e.target.value })}
+                placeholder="e.g., cash, mpesa"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="total_amount">Total Amount (KSH)</Label>
+              <Input
+                id="total_amount"
+                type="number"
+                step="0.01"
+                value={editFormData.total_amount}
+                onChange={(e) => setEditFormData({ ...editFormData, total_amount: parseFloat(e.target.value) || 0 })}
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Update Sale
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
