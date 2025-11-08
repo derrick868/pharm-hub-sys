@@ -1,19 +1,13 @@
-const CACHE_NAME = "amiko-plas-cache-v2";
+const CACHE_NAME = "amiko-plas-cache-v3";
 const OFFLINE_URL = "/offline.html";
 
 const ASSETS_TO_CACHE = [
-  "/",                  // Home
+  "/",               // Home page
   "/index.html",
-  "/about.html",
-  "/contact.html",
-  "/offline.html",      // Offline fallback
-  "/assets/css/style.css",
-  "/assets/js/main.js",
-  "/assets/icons/icon-192x192.png",
-  "/assets/icons/icon-512x512.png"
+  "/offline.html"    // Offline fallback
 ];
 
-// Install — cache core files
+// Install — cache essential files
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
@@ -21,15 +15,13 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate — clear old caches
+// Activate — remove old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       )
     )
@@ -37,37 +29,32 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch — respond with cache or network
+// Fetch — use network first, fallback to cache, then offline page
 self.addEventListener("fetch", (event) => {
   if (event.request.mode === "navigate") {
-    // For navigation requests, try network first
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          // Cache the latest version of this page
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(OFFLINE_URL))
+        .catch(() => {
+          // Offline fallback
+          return caches.match(event.request).then((cached) => cached || caches.match(OFFLINE_URL));
+        })
     );
   } else {
-    // For static files, use cache first
+    // For other requests (images, css, js)
     event.respondWith(
       caches.match(event.request).then((response) => {
         return (
           response ||
           fetch(event.request).then((networkResponse) => {
-            if (
-              !networkResponse ||
-              networkResponse.status !== 200 ||
-              networkResponse.type !== "basic"
-            ) {
-              return networkResponse;
-            }
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            // Optionally cache these files too
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
             return networkResponse;
           })
         );
@@ -75,4 +62,3 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
-
