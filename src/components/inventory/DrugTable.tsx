@@ -39,14 +39,36 @@ export const DrugTable = ({ drugs, onUpdate }: DrugTableProps) => {
 const handleDelete = async (id: string) => {
   setDeletingId(id);
 
-  const { error } = await supabase.from('drugs').delete().eq('id', id);
+  try {
+    // 1️⃣ Delete sale items that reference this drug
+    const { error: saleItemsError } = await supabase
+      .from('sale_items')
+      .delete()
+      .eq('drug_id', id);
 
-  if (error) {
-    console.error('Error deleting drug:', error);
-    toast.error('Failed to delete drug');
-  } else {
-    toast.success('Drug deleted successfully');
-    onUpdate();
+    if (saleItemsError) {
+      console.error('Error deleting sale items:', saleItemsError);
+      toast.error('Failed to delete associated sale items');
+      setDeletingId(null);
+      return;
+    }
+
+    // 2️⃣ Delete the drug itself
+    const { error: drugError } = await supabase
+      .from('drugs')
+      .delete()
+      .eq('id', id);
+
+    if (drugError) {
+      console.error('Error deleting drug:', drugError);
+      toast.error('Failed to delete drug');
+    } else {
+      toast.success('Drug and associated sale items deleted successfully');
+      onUpdate();
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toast.error('An unexpected error occurred');
   }
 
   setDeletingId(null);
