@@ -32,6 +32,7 @@ interface Supplier {
 interface Drug {
   id: string;
   name: string;
+  manufacturer: string;
   quantity: number;
   selling_price: number;
   expiry_date: string;
@@ -146,7 +147,7 @@ const Suppliers = () => {
     setLoadingDrugs(true);
     const { data, error } = await (supabase as any)
       .from('drugs')
-      .select('id, name, quantity, selling_price, expiry_date')
+      .select('id, name, manufacturer, quantity, selling_price, expiry_date')
       .eq('supplier_id', supplierId)
       .order('name', { ascending: true });
 
@@ -264,6 +265,7 @@ const Suppliers = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product Name</TableHead>
+                      <TableHead>Manufacturer</TableHead>
                       <TableHead>Quantity</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Expiry Date</TableHead>
@@ -273,6 +275,7 @@ const Suppliers = () => {
                     {supplierDrugs.map((drug) => (
                       <TableRow key={drug.id}>
                         <TableCell className="font-medium">{drug.name}</TableCell>
+                        <TableCell>{drug.manufacturer}</TableCell>
                         <TableCell>{drug.quantity}</TableCell>
                         <TableCell>KSH {Number(drug.selling_price).toFixed(2)}</TableCell>
                         <TableCell>{new Date(drug.expiry_date).toLocaleDateString()}</TableCell>
