@@ -22,11 +22,18 @@ import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
 
 const assessmentSchema = z.object({
   patient_name: z.string().min(1, 'Patient name is required'),
+  patient_contact: z.string().optional(),
   patient_age: z.string().optional(),
   patient_gender: z.string().optional(),
+  bp: z.string().optional(),
+  pulse_rate: z.string().optional(),
+  respiratory_rate: z.string().optional(),
+  spo2: z.string().optional(),
   chief_complaint: z.string().min(1, 'Chief complaint is required'),
   history_present_illness: z.string().optional(),
+  obstetrics_gyne_history: z.string().optional(),
   past_medical_history: z.string().optional(),
+  family_social_history: z.string().optional(),
   review_of_systems: z.string().optional(),
   investigation: z.string().optional(),
   diagnosis: z.string().optional(),
@@ -48,11 +55,18 @@ const DoctorAssessment = () => {
     resolver: zodResolver(assessmentSchema),
     defaultValues: {
       patient_name: '',
+      patient_contact: '',
       patient_age: '',
       patient_gender: '',
+      bp: '',
+      pulse_rate: '',
+      respiratory_rate: '',
+      spo2: '',
       chief_complaint: '',
       history_present_illness: '',
+      obstetrics_gyne_history: '',
       past_medical_history: '',
+      family_social_history: '',
       review_of_systems: '',
       investigation: '',
       diagnosis: '',
@@ -90,11 +104,18 @@ const DoctorAssessment = () => {
     try {
       const { error } = await (supabase as any).from('assessments').insert({
         patient_name: data.patient_name,
+        patient_contact: data.patient_contact,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender,
+        bp: data.bp,
+        pulse_rate: data.pulse_rate,
+        respiratory_rate: data.respiratory_rate,
+        spo2: data.spo2,
         chief_complaint: data.chief_complaint,
         history_present_illness: data.history_present_illness,
+        obstetrics_gyne_history: data.obstetrics_gyne_history,
         past_medical_history: data.past_medical_history,
+        family_social_history: data.family_social_history,
         review_of_systems: data.review_of_systems,
         investigation: data.investigation,
         diagnosis: data.diagnosis,
@@ -139,7 +160,7 @@ const DoctorAssessment = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Patient Information */}
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-4">
                     <FormField
                       control={form.control}
                       name="patient_name"
@@ -153,6 +174,21 @@ const DoctorAssessment = () => {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="patient_contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telephone Contact</FormLabel>
+                          <FormControl>
+                            <Input type="tel" placeholder="Enter contact number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={form.control}
                       name="patient_age"
@@ -166,6 +202,7 @@ const DoctorAssessment = () => {
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
                       name="patient_gender"
@@ -184,6 +221,62 @@ const DoctorAssessment = () => {
                               <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Vital Signs */}
+                  <div className="grid gap-4 md:grid-cols-4 sm:grid-cols-2 mt-2">
+                    <FormField
+                      control={form.control}
+                      name="bp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>BP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. 120/80 mmHg" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="pulse_rate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pulse Rate</FormLabel>
+                          <FormControl>
+                            <Input placeholder="bpm" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="respiratory_rate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Respiratory Rate</FormLabel>
+                          <FormControl>
+                            <Input placeholder="breaths/min" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="spo2"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SpO2</FormLabel>
+                          <FormControl>
+                            <Input placeholder="%" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -220,6 +313,21 @@ const DoctorAssessment = () => {
                     )}
                   />
 
+                  {/* Obstetrics/Gynecology History */}
+                  <FormField
+                    control={form.control}
+                    name="obstetrics_gyne_history"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Obstetrics/Gynecology History</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Relevant OB/GYN history" rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Past Medical History */}
                   <FormField
                     control={form.control}
@@ -229,6 +337,21 @@ const DoctorAssessment = () => {
                         <FormLabel>Past Medical or Surgical History</FormLabel>
                         <FormControl>
                           <Textarea placeholder="Previous medical conditions, surgeries, etc." rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Family/Social History */}
+                  <FormField
+                    control={form.control}
+                    name="family_social_history"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Family/Social History</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Family health history, lifestyle, social habits" rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
