@@ -8,6 +8,11 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
-    autoRefreshToken: true, // 🔴 Stop background refresh loop
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'cache-control': 'no-cache', // Force bypass of schema cache
+    },
   },
 })
