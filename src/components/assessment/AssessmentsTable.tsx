@@ -28,11 +28,18 @@ import { Label } from '@/components/ui/label';
 interface Assessment {
   id: string;
   patient_name: string;
+  patient_contact?: string;
   patient_age?: number;
   patient_gender?: string;
+  bp?: string;
+  pulse_rate?: string;
+  respiratory_rate?: string;
+  spo2?: string;
   chief_complaint: string;
   history_present_illness?: string;
+  obstetrics_gyne_history?: string;
   past_medical_history?: string;
+  family_social_history?: string;
   review_of_systems?: string;
   investigation?: string;
   diagnosis?: string;
@@ -110,61 +117,27 @@ export const AssessmentsTable = ({ searchQuery = '' }: AssessmentsTableProps) =>
             </div>
             <div class="grid">
               <div><span class="label">Patient Name:</span><span class="value">${assessment.patient_name}</span></div>
+              <div><span class="label">Contact:</span><span class="value">${assessment.patient_contact || 'N/A'}</span></div>
               <div><span class="label">Age:</span><span class="value">${assessment.patient_age || 'N/A'}</span></div>
               <div><span class="label">Gender:</span><span class="value">${assessment.patient_gender || 'N/A'}</span></div>
             </div>
-            <div class="section">
-              <p class="label">Chief Complaint:</p>
-              <p>${assessment.chief_complaint}</p>
+            <div class="grid">
+              <div><span class="label">BP:</span><span class="value">${assessment.bp || 'N/A'}</span></div>
+              <div><span class="label">Pulse Rate:</span><span class="value">${assessment.pulse_rate || 'N/A'}</span></div>
+              <div><span class="label">Respiratory Rate:</span><span class="value">${assessment.respiratory_rate || 'N/A'}</span></div>
+              <div><span class="label">Spo2:</span><span class="value">${assessment.spo2 || 'N/A'}</span></div>
             </div>
-            ${assessment.history_present_illness ? `
-              <div class="section">
-                <p class="label">History of Present Illness:</p>
-                <p>${assessment.history_present_illness}</p>
-              </div>
-            ` : ''}
-            ${assessment.past_medical_history ? `
-              <div class="section">
-                <p class="label">Past Medical History:</p>
-                <p>${assessment.past_medical_history}</p>
-              </div>
-            ` : ''}
-            ${assessment.review_of_systems ? `
-              <div class="section">
-                <p class="label">Review of Systems:</p>
-                <p>${assessment.review_of_systems}</p>
-              </div>
-            ` : ''}
-            ${assessment.investigation ? `
-              <div class="section">
-                <p class="label">Investigation:</p>
-                <p>${assessment.investigation}</p>
-              </div>
-            ` : ''}
-            ${assessment.diagnosis ? `
-              <div class="section">
-                <p class="label">Diagnosis:</p>
-                <p><strong>${assessment.diagnosis}</strong></p>
-              </div>
-            ` : ''}
-            ${assessment.treatment ? `
-              <div class="section">
-                <p class="label">Treatment:</p>
-                <p>${assessment.treatment}</p>
-              </div>
-            ` : ''}
-            ${assessment.appointment_date ? `
-              <div class="section">
-                <p class="label">Follow-up Appointment:</p>
-                <p>${format(new Date(assessment.appointment_date), 'PPP')}</p>
-              </div>
-            ` : ''}
-            ${assessment.notes ? `
-              <div class="section">
-                <p class="label">Additional Notes:</p>
-                <p>${assessment.notes}</p>
-              </div>
-            ` : ''}
+            ${assessment.chief_complaint ? `<div class="section"><p class="label">Chief Complaint:</p><p>${assessment.chief_complaint}</p></div>` : ''}
+            ${assessment.history_present_illness ? `<div class="section"><p class="label">History of Present Illness:</p><p>${assessment.history_present_illness}</p></div>` : ''}
+            ${assessment.obstetrics_gyne_history ? `<div class="section"><p class="label">Obstetrics/Gyne History:</p><p>${assessment.obstetrics_gyne_history}</p></div>` : ''}
+            ${assessment.past_medical_history ? `<div class="section"><p class="label">Past Medical History:</p><p>${assessment.past_medical_history}</p></div>` : ''}
+            ${assessment.family_social_history ? `<div class="section"><p class="label">Family/Social History:</p><p>${assessment.family_social_history}</p></div>` : ''}
+            ${assessment.review_of_systems ? `<div class="section"><p class="label">Review of Systems:</p><p>${assessment.review_of_systems}</p></div>` : ''}
+            ${assessment.investigation ? `<div class="section"><p class="label">Investigation:</p><p>${assessment.investigation}</p></div>` : ''}
+            ${assessment.diagnosis ? `<div class="section"><p class="label">Diagnosis:</p><p><strong>${assessment.diagnosis}</strong></p></div>` : ''}
+            ${assessment.treatment ? `<div class="section"><p class="label">Treatment:</p><p>${assessment.treatment}</p></div>` : ''}
+            ${assessment.appointment_date ? `<div class="section"><p class="label">Follow-up Appointment:</p><p>${format(new Date(assessment.appointment_date), 'PPP')}</p></div>` : ''}
+            ${assessment.notes ? `<div class="section"><p class="label">Additional Notes:</p><p>${assessment.notes}</p></div>` : ''}
           </body>
         </html>
       `);
@@ -237,9 +210,11 @@ export const AssessmentsTable = ({ searchQuery = '' }: AssessmentsTableProps) =>
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Patient Name</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Age</TableHead>
                   <TableHead>Gender</TableHead>
-                  <TableHead>Chief Complaint</TableHead>
+                  <TableHead>BP</TableHead>
+                  <TableHead>Pulse</TableHead>
                   <TableHead>Diagnosis</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -247,32 +222,23 @@ export const AssessmentsTable = ({ searchQuery = '' }: AssessmentsTableProps) =>
               <TableBody>
                 {filteredAssessments.map((assessment) => (
                   <TableRow key={assessment.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {format(new Date(assessment.created_at), 'MMM dd, yyyy')}
-                    </TableCell>
+                    <TableCell>{format(new Date(assessment.created_at), 'MMM dd, yyyy')}</TableCell>
                     <TableCell className="font-medium">{assessment.patient_name}</TableCell>
+                    <TableCell>{assessment.patient_contact || 'N/A'}</TableCell>
                     <TableCell>{assessment.patient_age || 'N/A'}</TableCell>
                     <TableCell className="capitalize">{assessment.patient_gender || 'N/A'}</TableCell>
-                    <TableCell className="max-w-xs truncate">{assessment.chief_complaint}</TableCell>
+                    <TableCell>{assessment.bp || 'N/A'}</TableCell>
+                    <TableCell>{assessment.pulse_rate || 'N/A'}</TableCell>
                     <TableCell className="max-w-xs truncate">{assessment.diagnosis || 'N/A'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handlePrint(assessment)}
-                          title="Print"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handlePrint(assessment)} title="Print">
                           <Printer className="h-4 w-4" />
                         </Button>
+                        {/* Forward Dialog */}
                         <Dialog open={forwardDialogOpen && selectedAssessment?.id === assessment.id} onOpenChange={setForwardDialogOpen}>
                           <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedAssessment(assessment)}
-                              title="Forward to Staff"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedAssessment(assessment)} title="Forward to Staff">
                               <Send className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
@@ -301,115 +267,142 @@ export const AssessmentsTable = ({ searchQuery = '' }: AssessmentsTableProps) =>
                               </div>
                             </div>
                             <div className="flex justify-end gap-2">
-                              <Button variant="outline" onClick={() => setForwardDialogOpen(false)}>
-                                Cancel
-                              </Button>
-                              <Button onClick={handleForward}>
-                                Forward
-                              </Button>
+                              <Button variant="outline" onClick={() => setForwardDialogOpen(false)}>Cancel</Button>
+                              <Button onClick={handleForward}>Forward</Button>
                             </div>
                           </DialogContent>
                         </Dialog>
+                        {/* View Dialog */}
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedAssessment(assessment)}
-                              title="View Details"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedAssessment(assessment)} title="View Details">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                        <DialogContent className="max-w-3xl max-h-[80vh]">
-                          <DialogHeader>
-                            <DialogTitle>Assessment Details</DialogTitle>
-                            <DialogDescription>
-                              Patient: {assessment.patient_name} - {format(new Date(assessment.created_at), 'PPP')}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <ScrollArea className="max-h-[60vh] pr-4">
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground">Patient Name</p>
-                                  <p className="font-medium">{assessment.patient_name}</p>
+                          <DialogContent className="max-w-3xl max-h-[80vh]">
+                            <DialogHeader>
+                              <DialogTitle>Assessment Details</DialogTitle>
+                              <DialogDescription>
+                                Patient: {assessment.patient_name} - {format(new Date(assessment.created_at), 'PPP')}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <ScrollArea className="max-h-[60vh] pr-4">
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-3 gap-4">
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Patient Name</p>
+                                    <p className="font-medium">{assessment.patient_name}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                                    <p className="font-medium">{assessment.patient_contact || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Age</p>
+                                    <p className="font-medium">{assessment.patient_age || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                                    <p className="font-medium capitalize">{assessment.patient_gender || 'N/A'}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground">Age</p>
-                                  <p className="font-medium">{assessment.patient_age || 'N/A'}</p>
+
+                                <div className="grid grid-cols-4 gap-4">
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">BP</p>
+                                    <p>{assessment.bp || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Pulse Rate</p>
+                                    <p>{assessment.pulse_rate || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Respiratory Rate</p>
+                                    <p>{assessment.respiratory_rate || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Spo2</p>
+                                    <p>{assessment.spo2 || 'N/A'}</p>
+                                  </div>
                                 </div>
+
                                 <div>
-                                  <p className="text-sm font-medium text-muted-foreground">Gender</p>
-                                  <p className="font-medium capitalize">{assessment.patient_gender || 'N/A'}</p>
+                                  <p className="text-sm font-medium text-muted-foreground mb-1">Chief Complaint</p>
+                                  <p className="text-sm">{assessment.chief_complaint}</p>
                                 </div>
+
+                                {assessment.history_present_illness && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">History of Present Illness</p>
+                                    <p className="text-sm">{assessment.history_present_illness}</p>
+                                  </div>
+                                )}
+
+                                {assessment.obstetrics_gyne_history && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Obstetrics/Gyne History</p>
+                                    <p className="text-sm">{assessment.obstetrics_gyne_history}</p>
+                                  </div>
+                                )}
+
+                                {assessment.past_medical_history && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Past Medical History</p>
+                                    <p className="text-sm">{assessment.past_medical_history}</p>
+                                  </div>
+                                )}
+
+                                {assessment.family_social_history && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Family/Social History</p>
+                                    <p className="text-sm">{assessment.family_social_history}</p>
+                                  </div>
+                                )}
+
+                                {assessment.review_of_systems && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Review of Systems</p>
+                                    <p className="text-sm">{assessment.review_of_systems}</p>
+                                  </div>
+                                )}
+
+                                {assessment.investigation && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Investigation</p>
+                                    <p className="text-sm">{assessment.investigation}</p>
+                                  </div>
+                                )}
+
+                                {assessment.diagnosis && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Diagnosis</p>
+                                    <p className="text-sm font-medium">{assessment.diagnosis}</p>
+                                  </div>
+                                )}
+
+                                {assessment.treatment && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Treatment</p>
+                                    <p className="text-sm">{assessment.treatment}</p>
+                                  </div>
+                                )}
+
+                                {assessment.appointment_date && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Follow-up Appointment</p>
+                                    <Badge variant="outline">{format(new Date(assessment.appointment_date), 'PPP')}</Badge>
+                                  </div>
+                                )}
+
+                                {assessment.notes && (
+                                  <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Additional Notes</p>
+                                    <p className="text-sm">{assessment.notes}</p>
+                                  </div>
+                                )}
                               </div>
-
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Chief Complaint</p>
-                                <p className="text-sm">{assessment.chief_complaint}</p>
-                              </div>
-
-                              {assessment.history_present_illness && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">History of Present Illness</p>
-                                  <p className="text-sm">{assessment.history_present_illness}</p>
-                                </div>
-                              )}
-
-                              {assessment.past_medical_history && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Past Medical History</p>
-                                  <p className="text-sm">{assessment.past_medical_history}</p>
-                                </div>
-                              )}
-
-                              {assessment.review_of_systems && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Review of Systems</p>
-                                  <p className="text-sm">{assessment.review_of_systems}</p>
-                                </div>
-                              )}
-
-                              {assessment.investigation && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Investigation</p>
-                                  <p className="text-sm">{assessment.investigation}</p>
-                                </div>
-                              )}
-
-                              {assessment.diagnosis && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Diagnosis</p>
-                                  <p className="text-sm font-medium">{assessment.diagnosis}</p>
-                                </div>
-                              )}
-
-                              {assessment.treatment && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Treatment</p>
-                                  <p className="text-sm">{assessment.treatment}</p>
-                                </div>
-                              )}
-
-                              {assessment.appointment_date && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Follow-up Appointment</p>
-                                  <Badge variant="outline">
-                                    {format(new Date(assessment.appointment_date), 'PPP')}
-                                  </Badge>
-                                </div>
-                              )}
-
-                              {assessment.notes && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-1">Additional Notes</p>
-                                  <p className="text-sm">{assessment.notes}</p>
-                                </div>
-                              )}
-                            </div>
-                          </ScrollArea>
-                        </DialogContent>
+                            </ScrollArea>
+                          </DialogContent>
                         </Dialog>
                       </div>
                     </TableCell>
