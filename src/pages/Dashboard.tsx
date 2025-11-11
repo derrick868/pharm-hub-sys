@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, AlertTriangle, DollarSign, TrendingUp, Clock, AlertOctagon } from 'lucide-react';
+import {
+  Package,
+  AlertTriangle,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  AlertOctagon,
+  CheckCircle,
+} from 'lucide-react';
 import dayjs from 'dayjs';
 import { Badge } from '@/components/ui/badge';
 
@@ -11,10 +19,10 @@ const Dashboard = () => {
   const [lowStock, setLowStock] = useState(0);
   const [totalDrugs, setTotalDrugs] = useState(0);
   const [expiringDrugsList, setExpiringDrugsList] = useState([]);
+  const [expiredDrugsList, setExpiredDrugsList] = useState([]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      // Fetch all drugs
       const { data: drugs, error: drugsError } = await supabase.from('drugs').select('*');
       if (drugsError) {
         console.error('Error fetching drugs:', drugsError);
@@ -24,19 +32,17 @@ const Dashboard = () => {
       if (drugs) {
         setTotalDrugs(drugs.length);
 
-        // Total stock value
         const value = drugs.reduce(
           (sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0),
           0
         );
         setStockValue(value);
 
-        // Low stock items
         const low = drugs.filter((d) => d.quantity < (d.low_stock_threshold || 10)).length;
         setLowStock(low);
 
-        // Drugs expiring in next 60 days
         const today = dayjs();
+
         const expiringList = drugs
           .filter(
             (d) =>
@@ -46,10 +52,14 @@ const Dashboard = () => {
           )
           .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
 
+        const expiredList = drugs
+          .filter((d) => d.expiry_date && dayjs(d.expiry_date).isBefore(today))
+          .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
+
         setExpiringDrugsList(expiringList);
+        setExpiredDrugsList(expiredList);
       }
 
-      // Fetch sales in last 30 days
       const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
       const { data: sales, error: salesError } = await supabase
         .from('sales')
@@ -67,6 +77,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-muted-foreground">Welcome to Amiko Plas Medical Clinic</p>
@@ -119,66 +130,107 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Expiring Drugs Section */}
-      <Card className="shadow-lg border-red-300">
-        <CardHeader className="bg-gradient-to-r from-yellow-500 to-red-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" /> Drugs Nearing Expiry (Next 60 Days)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 bg-gray-50 rounded-b-lg">
-          {expiringDrugsList.length > 0 ? (
-            <ul className="divide-y divide-gray-200 max-h-72 overflow-y-auto">
-              {expiringDrugsList.map((drug) => {
-                const daysLeft = dayjs(drug.expiry_date).diff(dayjs(), 'day');
-                const isCritical = daysLeft <= 10;
+      {/* Expiry & Expired Sections */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Nearing Expiry */}
+        <Card className="shadow-lg border-yellow-300">
+          <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" /> Drugs Nearing Expiry (Next 60 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 bg-yellow-50 rounded-b-lg">
+            {expiringDrugsList.length > 0 ? (
+              <ul className="divide-y divide-yellow-200 max-h-72 overflow-y-auto">
+                {expiringDrugsList.map((drug) => {
+                  const daysLeft = dayjs(drug.expiry_date).diff(dayjs(), 'day');
+                  const isCritical = daysLeft <= 10;
 
-                return (
+                  return (
+                    <li
+                      key={drug.id}
+                      className={`py-3 flex justify-between items-center px-2 rounded-lg transition ${
+                        isCritical
+                          ? 'bg-red-50 hover:bg-red-100'
+                          : 'bg-yellow-100 hover:bg-yellow-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isCritical ? (
+                          <AlertOctagon className="h-5 w-5 text-red-600" />
+                        ) : (
+                          <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                        )}
+                        <span className="font-medium text-gray-800">{drug.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          className={`text-xs ${
+                            isCritical
+                              ? 'bg-red-600 hover:bg-red-700'
+                              : 'bg-yellow-500 hover:bg-yellow-600'
+                          } text-white`}
+                        >
+                          {isCritical ? 'Expiring Soon' : `${daysLeft} days left`}
+                        </Badge>
+                        <span
+                          className={`text-sm ${
+                            isCritical ? 'text-red-600 font-semibold' : 'text-yellow-700'
+                          }`}
+                        >
+                          {dayjs(drug.expiry_date).format('DD MMM YYYY')}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="text-center py-10 text-muted-foreground italic">
+                ✅ No drugs nearing expiry
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Expired Drugs */}
+        <Card className="shadow-lg border-red-400">
+          <CardHeader className="bg-gradient-to-r from-red-600 to-red-800 text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-2">
+              <AlertOctagon className="h-5 w-5" /> Expired Drugs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 bg-red-50 rounded-b-lg">
+            {expiredDrugsList.length > 0 ? (
+              <ul className="divide-y divide-red-200 max-h-72 overflow-y-auto">
+                {expiredDrugsList.map((drug) => (
                   <li
                     key={drug.id}
-                    className={`py-3 flex justify-between items-center px-2 rounded-lg ${
-                      isCritical
-                        ? 'bg-red-50 hover:bg-red-100'
-                        : 'bg-yellow-50 hover:bg-yellow-100'
-                    } transition`}
+                    className="py-3 flex justify-between items-center px-2 rounded-lg bg-red-100 hover:bg-red-200 transition"
                   >
                     <div className="flex items-center gap-2">
-                      {isCritical ? (
-                        <AlertOctagon className="h-5 w-5 text-red-600" />
-                      ) : (
-                        <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                      )}
+                      <AlertOctagon className="h-5 w-5 text-red-700" />
                       <span className="font-medium text-gray-800">{drug.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge
-                        className={`text-xs ${
-                          isCritical
-                            ? 'bg-red-600 hover:bg-red-700'
-                            : 'bg-yellow-500 hover:bg-yellow-600'
-                        } text-white`}
-                      >
-                        {isCritical ? 'Expiring Soon' : 'Near Expiry'}
+                      <Badge className="text-xs bg-red-700 hover:bg-red-800 text-white">
+                        Expired
                       </Badge>
-                      <span
-                        className={`text-sm ${
-                          isCritical ? 'text-red-600 font-semibold' : 'text-yellow-700'
-                        }`}
-                      >
+                      <span className="text-sm text-red-700 font-semibold">
                         {dayjs(drug.expiry_date).format('DD MMM YYYY')}
                       </span>
                     </div>
                   </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="text-center py-10 text-muted-foreground italic">
-              🎉 No drugs expiring soon
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center py-10 text-muted-foreground italic">
+                🎉 No expired drugs
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
