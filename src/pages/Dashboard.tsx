@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Clock,
   AlertOctagon,
-  XCircle,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +19,7 @@ const Dashboard = () => {
   const [totalDrugs, setTotalDrugs] = useState(0);
   const [expiringDrugsList, setExpiringDrugsList] = useState([]);
   const [expiredDrugsList, setExpiredDrugsList] = useState([]);
-  const [totalLoss, setTotalLoss] = useState(0);
+  const [expiredLossValue, setExpiredLossValue] = useState(0);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -33,17 +32,20 @@ const Dashboard = () => {
       if (drugs) {
         setTotalDrugs(drugs.length);
 
-        const stockValueCalc = drugs.reduce(
+        // Total stock value
+        const value = drugs.reduce(
           (sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0),
           0
         );
-        setStockValue(stockValueCalc);
+        setStockValue(value);
 
+        // Low stock
         const low = drugs.filter((d) => d.quantity < (d.low_stock_threshold || 10)).length;
         setLowStock(low);
 
         const today = dayjs();
 
+        // Expiring within 60 days
         const expiringList = drugs
           .filter(
             (d) =>
@@ -53,22 +55,24 @@ const Dashboard = () => {
           )
           .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
 
+        // Expired drugs
         const expiredList = drugs
           .filter((d) => d.expiry_date && dayjs(d.expiry_date).isBefore(today))
           .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
 
+        // 💸 Calculate loss from expired drugs
+        const loss = expiredList.reduce((sum, d) => {
+          const price = Number(d.purchase_price) || 0;
+          const qty = Number(d.quantity) || 0;
+          return sum + price * qty;
+        }, 0);
+
         setExpiringDrugsList(expiringList);
         setExpiredDrugsList(expiredList);
-
-        // 💸 Calculate total loss for expired drugs
-        const loss = expiredList.reduce(
-          (sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0),
-          0
-        );
-        setTotalLoss(loss);
+        setExpiredLossValue(loss);
       }
 
-      // Fetch sales (last 30 days)
+      // Sales for last 30 days
       const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
       const { data: sales, error: salesError } = await supabase
         .from('sales')
@@ -93,7 +97,7 @@ const Dashboard = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
@@ -137,23 +141,11 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground">In inventory</p>
           </CardContent>
         </Card>
-
-        {/* 💸 Total Loss Card */}
-        <Card className="border-red-500 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-red-700">Total Loss</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">KSH {totalLoss.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From expired drugs</p>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Expiry Sections */}
+      {/* Expiry & Expired Sections */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Expiring Drugs */}
+        {/* Nearing Expiry */}
         <Card className="shadow-lg border-yellow-300">
           <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2">
@@ -222,6 +214,10 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 bg-red-50 rounded-b-lg">
+            <div className="mb-3 text-red-700 font-semibold text-sm">
+              💸 Total Loss from Expired Drugs: KSH {expiredLossValue.toFixed(2)}
+            </div>
+
             {expiredDrugsList.length > 0 ? (
               <ul className="divide-y divide-red-200 max-h-72 overflow-y-auto">
                 {expiredDrugsList.map((drug) => (
