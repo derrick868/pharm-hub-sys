@@ -77,9 +77,16 @@ const DoctorAssessment = () => {
 
   const fetchAssessments = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('assessments')
-      .select('*')
+      .select(`
+        id, patient_name, patient_contact, patient_age, patient_gender,
+        bp, pulse_rate, respiratory_rate, spo2,
+        chief_complaint, history_present_illness, obstetrics_gyne_history,
+        past_medical_history, family_social_history, review_of_systems,
+        investigation, diagnosis, treatment, appointment_date, notes,
+        created_at
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -102,7 +109,6 @@ const DoctorAssessment = () => {
 
     setIsSubmitting(true);
     try {
-      // Convert empty strings to null for optional fields
       const payload = {
         patient_name: data.patient_name,
         patient_contact: data.patient_contact || null,
@@ -126,7 +132,7 @@ const DoctorAssessment = () => {
         created_by: user.id,
       };
 
-      const { error } = await (supabase as any).from('assessments').insert(payload);
+      const { error } = await supabase.from('assessments').insert(payload);
 
       if (error) throw error;
 
