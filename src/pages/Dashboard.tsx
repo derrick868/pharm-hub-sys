@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Clock,
   AlertOctagon,
+  AlertCircle,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [expiringDrugsList, setExpiringDrugsList] = useState([]);
   const [expiredDrugsList, setExpiredDrugsList] = useState([]);
   const [expiredLossValue, setExpiredLossValue] = useState(0);
+  const [potentialLossValue, setPotentialLossValue] = useState(0);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -61,7 +63,14 @@ const Dashboard = () => {
           .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
 
         // 💸 Calculate loss from expired drugs
-        const loss = expiredList.reduce((sum, d) => {
+        const expiredLoss = expiredList.reduce((sum, d) => {
+          const price = Number(d.purchase_price) || 0;
+          const qty = Number(d.quantity) || 0;
+          return sum + price * qty;
+        }, 0);
+
+        // ⚠️ Calculate potential loss for drugs nearing expiry
+        const potentialLoss = expiringList.reduce((sum, d) => {
           const price = Number(d.purchase_price) || 0;
           const qty = Number(d.quantity) || 0;
           return sum + price * qty;
@@ -69,7 +78,8 @@ const Dashboard = () => {
 
         setExpiringDrugsList(expiringList);
         setExpiredDrugsList(expiredList);
-        setExpiredLossValue(loss);
+        setExpiredLossValue(expiredLoss);
+        setPotentialLossValue(potentialLoss);
       }
 
       // Sales for last 30 days
@@ -153,6 +163,11 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 bg-yellow-50 rounded-b-lg">
+            <div className="mb-3 text-yellow-800 font-semibold text-sm flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              ⚠️ Potential Loss if Unsold: KSH {potentialLossValue.toFixed(2)}
+            </div>
+
             {expiringDrugsList.length > 0 ? (
               <ul className="divide-y divide-yellow-200 max-h-72 overflow-y-auto">
                 {expiringDrugsList.map((drug) => {
@@ -214,7 +229,7 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 bg-red-50 rounded-b-lg">
-            <div className="mb-3 text-red-700 font-semibold text-sm">
+            <div className="mb-3 text-red-700 font-semibold text-sm flex items-center gap-2">
               💸 Total Loss from Expired Drugs: KSH {expiredLossValue.toFixed(2)}
             </div>
 
