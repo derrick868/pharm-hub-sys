@@ -10,11 +10,12 @@ const Dashboard = () => {
   const [lowStock, setLowStock] = useState(0);
   const [totalDrugs, setTotalDrugs] = useState(0);
   const [expiringDrugs, setExpiringDrugs] = useState(0);
+  const [expiringDrugsList, setExpiringDrugsList] = useState([]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       // Fetch all drugs
-      const { data: drugs, error: drugsError } = await (supabase as any).from('drugs').select('*');
+      const { data: drugs, error: drugsError } = await supabase.from('drugs').select('*');
       if (drugsError) {
         console.error('Error fetching drugs:', drugsError);
         return;
@@ -24,7 +25,10 @@ const Dashboard = () => {
         setTotalDrugs(drugs.length);
 
         // Total stock value
-        const value = drugs.reduce((sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0), 0);
+        const value = drugs.reduce(
+          (sum, d) => sum + (Number(d.purchase_price) || 0) * (d.quantity || 0),
+          0
+        );
         setStockValue(value);
 
         // Low stock items
@@ -33,15 +37,22 @@ const Dashboard = () => {
 
         // Drugs expiring in next 60 days
         const today = dayjs();
-        const expiring = drugs.filter(
-          (d) => d.expiry_date && dayjs(d.expiry_date).diff(today, 'day') <= 60
-        ).length;
-        setExpiringDrugs(expiring);
+        const expiringList = drugs
+          .filter(
+            (d) =>
+              d.expiry_date &&
+              dayjs(d.expiry_date).isAfter(today) &&
+              dayjs(d.expiry_date).diff(today, 'day') <= 60
+          )
+          .sort((a, b) => dayjs(a.expiry_date).diff(dayjs(b.expiry_date)));
+
+        setExpiringDrugs(expiringList.length);
+        setExpiringDrugsList(expiringList);
       }
 
       // Fetch sales in last 30 days (if you have a `sales` table)
       const thirtyDaysAgo = dayjs().subtract(30, 'day').format('YYYY-MM-DD');
-      const { data: sales, error: salesError } = await (supabase as any)
+      const { data: sales, error: salesError } = await supabase
         .from('sales')
         .select('total_amount, created_at')
         .gte('created_at', thirtyDaysAgo);
@@ -60,10 +71,11 @@ const Dashboard = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-muted-foreground">
-          Welcome to Amiko plas medical clinic
+          Welcome to Amiko Plas Medical Clinic
         </p>
       </div>
 
+      {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -110,16 +122,34 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Expiring Drugs List */}
       <Card>
         <CardHeader>
           <CardTitle>Drugs Nearing Expiry (Next 60 Days)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            {expiringDrugs > 0
-              ? `${expiringDrugs} drug(s) expiring soon`
-              : 'No drugs expiring soon'}
-          </div>
+          {expiringDrugsList.length > 0 ? (
+            <ul className="divide-y divide-muted max-h-64 overflow-y-auto">
+              {expiringDrugsList.map((drug) => (
+                <li key={drug.id} className="py-2 flex justify-between items-center">
+                  <span className="font-medium">{drug.name}</span>
+                  <span
+                    className={`text-sm ${
+                      dayjs(drug.expiry_date).diff(dayjs(), 'day') < 10
+                        ? 'text-red-500 font-semibold'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {dayjs(drug.expiry_date).format('DD MMM YYYY')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No drugs expiring soon
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
