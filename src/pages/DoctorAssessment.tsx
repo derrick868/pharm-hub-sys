@@ -24,13 +24,13 @@ const assessmentSchema = z.object({
   patient_contact: z.string().default(''),
   patient_age: z.string().default(''),
   patient_gender: z.string().default(''),
-  bp: z.string().default(''),
+  blood_pressure: z.string().default(''),
   pulse_rate: z.string().default(''),
   respiratory_rate: z.string().default(''),
   spo2: z.string().default(''),
   chief_complaint: z.string().min(1),
   history_present_illness: z.string().default(''),
- obstetrics_gyne_history: z.string().default(''),
+  obstetrics_gyne_history: z.string().default(''),
   past_medical_history: z.string().default(''),
   family_social_history: z.string().default(''),
   review_of_systems: z.string().default(''),
@@ -57,13 +57,13 @@ const DoctorAssessment = () => {
       patient_contact: '',
       patient_age: '',
       patient_gender: '',
-      bp: '',
+      blood_pressure: '',
       pulse_rate: '',
       respiratory_rate: '',
       spo2: '',
       chief_complaint: '',
       history_present_illness: '',
-     obstetrics_gyne_history: '',
+      obstetrics_gyne_history: '',
       past_medical_history: '',
       family_social_history: '',
       review_of_systems: '',
@@ -104,13 +104,13 @@ const DoctorAssessment = () => {
         patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
-        bp: data.bp || null,
+        blood_pressure: data.blood_pressure || null,
         pulse_rate: data.pulse_rate || null,
         respiratory_rate: data.respiratory_rate || null,
         spo2: data.spo2 || null,
         chief_complaint: data.chief_complaint,
         history_present_illness: data.history_present_illness || null,
-       obstetrics_gyne_history: data.obstetrics_history || null,
+        obstetrics_gyne_history: data.obstetrics_gyne_history || null,
         past_medical_history: data.past_medical_history || null,
         family_social_history: data.family_social_history || null,
         review_of_systems: data.review_of_systems || null,
@@ -198,7 +198,7 @@ const DoctorAssessment = () => {
 
                   {/* Vital Signs */}
                   <div className="grid gap-4 md:grid-cols-4">
-                    {['bp', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
+                    {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
                       <FormField key={fieldName} control={form.control} name={fieldName as keyof AssessmentForm} render={({ field }) => (
                         <FormItem>
                           <FormLabel>{fieldName.replace('_', ' ').toUpperCase()}</FormLabel>
@@ -221,7 +221,7 @@ const DoctorAssessment = () => {
                   {/* All other sections */}
                   {[
                     {name: 'history_present_illness', label: 'History of Present Illness', rows: 4},
-                    {name: 'obstetrics_history', label: 'Obstetrics/Gynecology History', rows: 3},
+                    {name: 'obstetrics_gyne_history', label: 'Obstetrics/Gynecology History', rows: 3},
                     {name: 'past_medical_history', label: 'Past Medical History', rows: 3},
                     {name: 'family_social_history', label: 'Family/Social History', rows: 3},
                     {name: 'review_of_systems', label: 'Review of Systems', rows: 4},
