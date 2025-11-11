@@ -22,24 +22,24 @@ import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
 
 const assessmentSchema = z.object({
   patient_name: z.string().min(1, 'Patient name is required'),
-  patient_contact: z.string().optional(),
-  patient_age: z.string().optional(),
-  patient_gender: z.string().optional(),
-  bp: z.string().optional(),
-  pulse_rate: z.string().optional(),
-  respiratory_rate: z.string().optional(),
-  spo2: z.string().optional(),
+  patient_contact: z.string().default(''),
+  patient_age: z.string().default(''),
+  patient_gender: z.string().default(''),
+  bp: z.string().default(''),
+  pulse_rate: z.string().default(''),
+  respiratory_rate: z.string().default(''),
+  spo2: z.string().default(''),
   chief_complaint: z.string().min(1, 'Chief complaint is required'),
-  history_present_illness: z.string().optional(),
-  obstetrics_gyne_history: z.string().optional(),
-  past_medical_history: z.string().optional(),
-  family_social_history: z.string().optional(),
-  review_of_systems: z.string().optional(),
-  investigation: z.string().optional(),
-  diagnosis: z.string().optional(),
-  treatment: z.string().optional(),
+  history_present_illness: z.string().default(''),
+  obstetrics_gyne_history: z.string().default(''),
+  past_medical_history: z.string().default(''),
+  family_social_history: z.string().default(''),
+  review_of_systems: z.string().default(''),
+  investigation: z.string().default(''),
+  diagnosis: z.string().default(''),
+  treatment: z.string().default(''),
   appointment_date: z.date().optional(),
-  notes: z.string().optional(),
+  notes: z.string().default(''),
 });
 
 type AssessmentForm = z.infer<typeof assessmentSchema>;
@@ -102,28 +102,31 @@ const DoctorAssessment = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await (supabase as any).from('assessments').insert({
+      // Convert empty strings to null for optional fields
+      const payload = {
         patient_name: data.patient_name,
-        patient_contact: data.patient_contact,
+        patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
-        patient_gender: data.patient_gender,
-        bp: data.bp,
-        pulse_rate: data.pulse_rate,
-        respiratory_rate: data.respiratory_rate,
-        spo2: data.spo2,
+        patient_gender: data.patient_gender || null,
+        bp: data.bp || null,
+        pulse_rate: data.pulse_rate || null,
+        respiratory_rate: data.respiratory_rate || null,
+        spo2: data.spo2 || null,
         chief_complaint: data.chief_complaint,
-        history_present_illness: data.history_present_illness,
-        obstetrics_gyne_history: data.obstetrics_gyne_history,
-        past_medical_history: data.past_medical_history,
-        family_social_history: data.family_social_history,
-        review_of_systems: data.review_of_systems,
-        investigation: data.investigation,
-        diagnosis: data.diagnosis,
-        treatment: data.treatment,
-        appointment_date: data.appointment_date?.toISOString(),
-        notes: data.notes,
+        history_present_illness: data.history_present_illness || null,
+        obstetrics_gyne_history: data.obstetrics_gyne_history || null,
+        past_medical_history: data.past_medical_history || null,
+        family_social_history: data.family_social_history || null,
+        review_of_systems: data.review_of_systems || null,
+        investigation: data.investigation || null,
+        diagnosis: data.diagnosis || null,
+        treatment: data.treatment || null,
+        appointment_date: data.appointment_date?.toISOString() || null,
+        notes: data.notes || null,
         created_by: user.id,
-      });
+      };
+
+      const { error } = await (supabase as any).from('assessments').insert(payload);
 
       if (error) throw error;
 
@@ -174,7 +177,6 @@ const DoctorAssessment = () => {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="patient_contact"
@@ -182,13 +184,12 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>Telephone Contact</FormLabel>
                           <FormControl>
-                            <Input type="tel" placeholder="Enter contact number" {...field} />
+                            <Input placeholder="Patient phone number" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="patient_age"
@@ -202,7 +203,6 @@ const DoctorAssessment = () => {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="patient_gender"
@@ -228,7 +228,7 @@ const DoctorAssessment = () => {
                   </div>
 
                   {/* Vital Signs */}
-                  <div className="grid gap-4 md:grid-cols-4 sm:grid-cols-2 mt-2">
+                  <div className="grid gap-4 md:grid-cols-4">
                     <FormField
                       control={form.control}
                       name="bp"
@@ -249,7 +249,7 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>Pulse Rate</FormLabel>
                           <FormControl>
-                            <Input placeholder="bpm" {...field} />
+                            <Input placeholder="beats per minute" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -262,7 +262,7 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>Respiratory Rate</FormLabel>
                           <FormControl>
-                            <Input placeholder="breaths/min" {...field} />
+                            <Input placeholder="breaths per minute" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -273,9 +273,9 @@ const DoctorAssessment = () => {
                       name="spo2"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>SpO2</FormLabel>
+                          <FormLabel>Spo2</FormLabel>
                           <FormControl>
-                            <Input placeholder="%" {...field} />
+                            <Input placeholder="oxygen saturation %" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -321,7 +321,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Obstetrics/Gynecology History</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Relevant OB/GYN history" rows={3} {...field} />
+                          <Textarea placeholder="Relevant obstetrics or gynecology history" rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -351,7 +351,7 @@ const DoctorAssessment = () => {
                       <FormItem>
                         <FormLabel>Family/Social History</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Family health history, lifestyle, social habits" rows={3} {...field} />
+                          <Textarea placeholder="Family medical history or social habits" rows={3} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -418,7 +418,7 @@ const DoctorAssessment = () => {
                     )}
                   />
 
-                  {/* Appointment */}
+                  {/* Appointment and Notes */}
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
