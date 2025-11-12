@@ -118,7 +118,7 @@ const DoctorAssessment = () => {
         created_by: user.id,
       };
 
-      console.log('Payload:', payload);
+      console.log('Payload being sent to Supabase:', payload);
       const { error } = await supabase.from('assessments').insert(payload);
       if (error) throw error;
 
