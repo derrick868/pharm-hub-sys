@@ -15,62 +15,84 @@ export type Database = {
   public: {
     Tables: {
       assessments: {
-        Row: {
-          appointment_date: string | null
-          chief_complaint: string
-          created_at: string
-          created_by: string
-          diagnosis: string | null
-          history_present_illness: string | null
-          id: string
-          investigation: string | null
-          notes: string | null
-          past_medical_history: string | null
-          patient_age: number | null
-          patient_gender: string | null
-          patient_name: string
-          review_of_systems: string | null
-          treatment: string | null
-          updated_at: string
-        }
-        Insert: {
-          appointment_date?: string | null
-          chief_complaint: string
-          created_at?: string
-          created_by: string
-          diagnosis?: string | null
-          history_present_illness?: string | null
-          id?: string
-          investigation?: string | null
-          notes?: string | null
-          past_medical_history?: string | null
-          patient_age?: number | null
-          patient_gender?: string | null
-          patient_name: string
-          review_of_systems?: string | null
-          treatment?: string | null
-          updated_at?: string
-        }
-        Update: {
-          appointment_date?: string | null
-          chief_complaint?: string
-          created_at?: string
-          created_by?: string
-          diagnosis?: string | null
-          history_present_illness?: string | null
-          id?: string
-          investigation?: string | null
-          notes?: string | null
-          past_medical_history?: string | null
-          patient_age?: number | null
-          patient_gender?: string | null
-          patient_name?: string
-          review_of_systems?: string | null
-          treatment?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
+  Row: {
+    id: string;
+    patient_name: string;
+    patient_contact: string | null;
+    patient_age: number | null;
+    patient_gender: string | null;
+    blood_pressure: string | null;
+    pulse_rate: string | null;
+    respiratory_rate: string | null;
+    spo2: string | null;
+    chief_complaint: string;
+    history_present_illness: string | null;
+    obstetrics_gyne_history: string | null;
+    past_medical_history: string | null;
+    family_social_history: string | null;
+    review_of_systems: string | null;
+    investigation: string | null;
+    diagnosis: string | null;
+    treatment: string | null;
+    appointment_date: string | null;
+    notes: string | null;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+  };
+  Insert: {
+    patient_name: string;
+    patient_contact?: string | null;
+    patient_age?: number | null;
+    patient_gender?: string | null;
+    blood_pressure?: string | null;
+    pulse_rate?: string | null;
+    respiratory_rate?: string | null;
+    spo2?: string | null;
+    chief_complaint: string;
+    history_present_illness?: string | null;
+    obstetrics_gyne_history?: string | null;
+    past_medical_history?: string | null;
+    family_social_history?: string | null;
+    review_of_systems?: string | null;
+    investigation?: string | null;
+    diagnosis?: string | null;
+    treatment?: string | null;
+    appointment_date?: string | null;
+    notes?: string | null;
+    created_by: string;
+    id?: string;
+    created_at?: string;
+    updated_at?: string;
+  };
+  Update: {
+    patient_name?: string;
+    patient_contact?: string | null;
+    patient_age?: number | null;
+    patient_gender?: string | null;
+    blood_pressure?: string | null;
+    pulse_rate?: string | null;
+    respiratory_rate?: string | null;
+    spo2?: string | null;
+    chief_complaint?: string;
+    history_present_illness?: string | null;
+    obstetrics_gyne_history?: string | null;
+    past_medical_history?: string | null;
+    family_social_history?: string | null;
+    review_of_systems?: string | null;
+    investigation?: string | null;
+    diagnosis?: string | null;
+    treatment?: string | null;
+    appointment_date?: string | null;
+    notes?: string | null;
+    created_by?: string;
+    id?: string;
+    created_at?: string;
+    updated_at?: string;
+  };
+  Relationships: [];
+};
+
       drugs: {
         Row: {
           created_at: string
