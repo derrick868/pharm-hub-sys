@@ -81,11 +81,9 @@ const DoctorAssessment = () => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching assessments:', error);
-    } else {
-      setAssessments(data || []);
-    }
+    if (error) console.error('Error fetching assessments:', error);
+    else setAssessments(data || []);
+
     setLoading(false);
   };
 
@@ -121,8 +119,11 @@ const DoctorAssessment = () => {
         notes: data.notes || null,
         created_by: user.id,
       };
+
       console.log('Payload:', payload);
+
       const { error } = await supabase.from('assessments').insert(payload);
+
       if (error) throw error;
 
       toast.success('Assessment saved successfully');
@@ -218,7 +219,7 @@ const DoctorAssessment = () => {
                     </FormItem>
                   )}/>
 
-                  {/* All other sections */}
+                  {/* Other Sections */}
                   {[
                     {name: 'history_present_illness', label: 'History of Present Illness', rows: 4},
                     {name: 'obstetrics_gyne_history', label: 'Obstetrics/Gynecology History', rows: 3},
