@@ -24,7 +24,6 @@ const assessmentSchema = z.object({
   patient_contact: z.string().default(''),
   patient_age: z.string().default(''),
   patient_gender: z.string().default(''),
-  blood_pressure: z.string().default(''),
   pulse_rate: z.string().default(''),
   respiratory_rate: z.string().default(''),
   spo2: z.string().default(''),
@@ -57,7 +56,6 @@ const DoctorAssessment = () => {
       patient_contact: '',
       patient_age: '',
       patient_gender: '',
-      blood_pressure: '',
       pulse_rate: '',
       respiratory_rate: '',
       spo2: '',
@@ -104,7 +102,6 @@ const DoctorAssessment = () => {
         patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
-        blood_pressure: data.blood_pressure || null,
         pulse_rate: data.pulse_rate || null,
         respiratory_rate: data.respiratory_rate || null,
         spo2: data.spo2 || null,
@@ -121,6 +118,7 @@ const DoctorAssessment = () => {
         notes: data.notes || null,
         created_by: user.id,
       };
+
       console.log('Payload:', payload);
       const { error } = await supabase.from('assessments').insert(payload);
       if (error) throw error;
@@ -197,8 +195,8 @@ const DoctorAssessment = () => {
                   </div>
 
                   {/* Vital Signs */}
-                  <div className="grid gap-4 md:grid-cols-4">
-                    {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {['pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
                       <FormField key={fieldName} control={form.control} name={fieldName as keyof AssessmentForm} render={({ field }) => (
                         <FormItem>
                           <FormLabel>{fieldName.replace('_', ' ').toUpperCase()}</FormLabel>
