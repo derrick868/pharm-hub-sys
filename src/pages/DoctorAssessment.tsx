@@ -104,7 +104,7 @@ const DoctorAssessment = () => {
         patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
-        blood_pressure: data.blood_pressure || null,
+        blood_pressure: data.blood_pressure,
         pulse_rate: data.pulse_rate || null,
         respiratory_rate: data.respiratory_rate || null,
         spo2: data.spo2 || null,
