@@ -1,10 +1,13 @@
-// src/pages/DoctorAssessment.tsx
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,33 +15,31 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { AssessmentsTable } from '@/components/assessment/AssessmentsTable';
 
 const assessmentSchema = z.object({
-  patient_name: z.string().min(1),
-  patient_contact: z.string().default(''),
-  patient_age: z.string().default(''),
-  patient_gender: z.string().default(''),
-  blood_pressure: z.string().default(''),
-  pulse_rate: z.string().default(''),
-  respiratory_rate: z.string().default(''),
-  spo2: z.string().default(''),
-  chief_complaint: z.string().min(1),
-  history_present_illness: z.string().default(''),
-  obstetrics_gyne_history: z.string().default(''),
-  past_medical_history: z.string().default(''),
-  family_social_history: z.string().default(''),
-  review_of_systems: z.string().default(''),
-  investigation: z.string().default(''),
-  diagnosis: z.string().default(''),
-  treatment: z.string().default(''),
+  patient_name: z.string().min(1, 'Patient name is required'),
+  patient_age: z.string().optional(),
+  patient_gender: z.string().optional(),
+  chief_complaint: z.string().min(1, 'Chief complaint is required'),
+  history_present_illness: z.string().optional(),
+  past_medical_history: z.string().optional(),
+  review_of_systems: z.string().optional(),
+  investigation: z.string().optional(),
+  diagnosis: z.string().optional(),
+  treatment: z.string().optional(),
   appointment_date: z.date().optional(),
-  notes: z.string().default(''),
+  notes: z.string().optional(),
+  // New fields (optional)
+  blood_pressure: z.string().optional(),
+  pulse_rate: z.string().optional(),
+  respiratory_rate: z.string().optional(),
+  spo2: z.string().optional(),
+  obstetrics_gyne_history: z.string().optional(),
+  family_social_history: z.string().optional(),
 });
 
 type AssessmentForm = z.infer<typeof assessmentSchema>;
@@ -54,36 +55,37 @@ const DoctorAssessment = () => {
     resolver: zodResolver(assessmentSchema),
     defaultValues: {
       patient_name: '',
-      patient_contact: '',
       patient_age: '',
       patient_gender: '',
-      blood_pressure: '',
-      pulse_rate: '',
-      respiratory_rate: '',
-      spo2: '',
       chief_complaint: '',
       history_present_illness: '',
-      obstetrics_gyne_history: '',
       past_medical_history: '',
-      family_social_history: '',
       review_of_systems: '',
       investigation: '',
       diagnosis: '',
       treatment: '',
       notes: '',
+      blood_pressure: '',
+      pulse_rate: '',
+      respiratory_rate: '',
+      spo2: '',
+      obstetrics_gyne_history: '',
+      family_social_history: '',
     },
   });
 
   const fetchAssessments = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('assessments')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) console.error('Error fetching assessments:', error);
-    else setAssessments(data || []);
-
+    if (error) {
+      console.error('Error fetching assessments:', error);
+    } else {
+      setAssessments(data || []);
+    }
     setLoading(false);
   };
 
@@ -92,25 +94,21 @@ const DoctorAssessment = () => {
   }, []);
 
   const onSubmit = async (data: AssessmentForm) => {
-    if (!user) return toast.error('You must be logged in');
+    if (!user) {
+      toast.error('You must be logged in');
+      return;
+    }
 
     setIsSubmitting(true);
-
     try {
-      const payload = {
+      // Only add fields that exist or have values
+      const payload: any = {
         patient_name: data.patient_name,
-        patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
-        blood_pressure: data.blood_pressure || null,
-        pulse_rate: data.pulse_rate || null,
-        respiratory_rate: data.respiratory_rate || null,
-        spo2: data.spo2 || null,
         chief_complaint: data.chief_complaint,
         history_present_illness: data.history_present_illness || null,
-        obstetrics_gyne_history: data.obstetrics_gyne_history || null,
         past_medical_history: data.past_medical_history || null,
-        family_social_history: data.family_social_history || null,
         review_of_systems: data.review_of_systems || null,
         investigation: data.investigation || null,
         diagnosis: data.diagnosis || null,
@@ -120,10 +118,15 @@ const DoctorAssessment = () => {
         created_by: user.id,
       };
 
-      console.log('Payload:', payload);
+      // Safely add new optional fields
+      if (data.blood_pressure) payload.blood_pressure = data.blood_pressure;
+      if (data.pulse_rate) payload.pulse_rate = data.pulse_rate;
+      if (data.respiratory_rate) payload.respiratory_rate = data.respiratory_rate;
+      if (data.spo2) payload.spo2 = data.spo2;
+      if (data.obstetrics_gyne_history) payload.obstetrics_gyne_history = data.obstetrics_gyne_history;
+      if (data.family_social_history) payload.family_social_history = data.family_social_history;
 
-      const { error } = await supabase.from('assessments').insert(payload);
-
+      const { error } = await (supabase as any).from('assessments').insert(payload);
       if (error) throw error;
 
       toast.success('Assessment saved successfully');
@@ -158,115 +161,170 @@ const DoctorAssessment = () => {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Patient Info */}
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <FormField control={form.control} name="patient_name" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Patient Name *</FormLabel>
-                        <FormControl><Input placeholder="Enter patient name" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
-                    <FormField control={form.control} name="patient_contact" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telephone Contact</FormLabel>
-                        <FormControl><Input placeholder="Phone number" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
-                    <FormField control={form.control} name="patient_age" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Age</FormLabel>
-                        <FormControl><Input type="number" placeholder="Age" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
-                    <FormField control={form.control} name="patient_gender" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
-                  </div>
-
-                  {/* Vital Signs */}
-                  <div className="grid gap-4 md:grid-cols-4">
-                    {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
-                      <FormField key={fieldName} control={form.control} name={fieldName as keyof AssessmentForm} render={({ field }) => (
+                  {/* Patient Information */}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="patient_name"
+                      render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{fieldName.replace('_', ' ').toUpperCase()}</FormLabel>
-                          <FormControl><Input placeholder={fieldName} {...field} /></FormControl>
+                          <FormLabel>Patient Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter patient name" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}/>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="patient_age"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Age</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="Age" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="patient_gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select gender" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Vital Signs (optional) */}
+                  <div className="grid gap-4 md:grid-cols-4">
+                    {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
+                      <FormField
+                        key={fieldName}
+                        control={form.control}
+                        name={fieldName as keyof AssessmentForm}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{fieldName.replace('_', ' ').toUpperCase()}</FormLabel>
+                            <FormControl>
+                              <Input placeholder={fieldName.replace('_', ' ')} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     ))}
                   </div>
 
                   {/* Chief Complaint */}
-                  <FormField control={form.control} name="chief_complaint" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Chief Complaint *</FormLabel>
-                      <FormControl><Textarea rows={3} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}/>
-
-                  {/* Other Sections */}
-                  {[
-                    {name: 'history_present_illness', label: 'History of Present Illness', rows: 4},
-                    {name: 'obstetrics_gyne_history', label: 'Obstetrics/Gynecology History', rows: 3},
-                    {name: 'past_medical_history', label: 'Past Medical History', rows: 3},
-                    {name: 'family_social_history', label: 'Family/Social History', rows: 3},
-                    {name: 'review_of_systems', label: 'Review of Systems', rows: 4},
-                    {name: 'investigation', label: 'Investigation', rows: 3},
-                    {name: 'diagnosis', label: 'Diagnosis', rows: 2},
-                    {name: 'treatment', label: 'Treatment', rows: 4},
-                  ].map((section) => (
-                    <FormField key={section.name} control={form.control} name={section.name as keyof AssessmentForm} render={({ field }) => (
+                  <FormField
+                    control={form.control}
+                    name="chief_complaint"
+                    render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{section.label}</FormLabel>
-                        <FormControl><Textarea rows={section.rows} {...field} /></FormControl>
+                        <FormLabel>Chief Complaint *</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Primary reason for visit" rows={3} {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}/>
+                    )}
+                  />
+
+                  {/* Optional sections */}
+                  {[
+                    { name: 'history_present_illness', label: 'History of Present Illness', rows: 4 },
+                    { name: 'obstetrics_gyne_history', label: 'Obstetrics/Gynecology History', rows: 3 },
+                    { name: 'past_medical_history', label: 'Past Medical History', rows: 3 },
+                    { name: 'family_social_history', label: 'Family/Social History', rows: 3 },
+                    { name: 'review_of_systems', label: 'Review of Systems', rows: 4 },
+                    { name: 'investigation', label: 'Investigation', rows: 3 },
+                    { name: 'diagnosis', label: 'Diagnosis', rows: 2 },
+                    { name: 'treatment', label: 'Treatment', rows: 4 },
+                  ].map((section) => (
+                    <FormField
+                      key={section.name}
+                      control={form.control}
+                      name={section.name as keyof AssessmentForm}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{section.label}</FormLabel>
+                          <FormControl>
+                            <Textarea rows={section.rows} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   ))}
 
                   {/* Appointment & Notes */}
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField control={form.control} name="appointment_date" render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Follow-up Appointment</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button variant="outline" className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                {field.value ? field.value.toLocaleDateString() : 'Pick a date'}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
-                    <FormField control={form.control} name="notes" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Additional Notes</FormLabel>
-                        <FormControl><Textarea rows={3} {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}/>
+                    <FormField
+                      control={form.control}
+                      name="appointment_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Follow-up Appointment</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Additional Notes</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Any additional information" rows={3} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
@@ -297,7 +355,9 @@ const DoctorAssessment = () => {
             </div>
           ) : assessments.length === 0 ? (
             <div className="border rounded-lg p-8 text-center">
-              <p className="text-muted-foreground">No assessments found. Add a new one in the “New Assessment” tab.</p>
+              <p className="text-muted-foreground">
+                No assessments found. Add a new one in the “New Assessment” tab.
+              </p>
             </div>
           ) : (
             <AssessmentsTable searchQuery={searchQuery} />
