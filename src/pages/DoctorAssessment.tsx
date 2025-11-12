@@ -81,11 +81,8 @@ const DoctorAssessment = () => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching assessments:', error);
-    } else {
-      setAssessments(data || []);
-    }
+    if (error) console.error('Error fetching assessments:', error);
+    else setAssessments(data || []);
     setLoading(false);
   };
 
@@ -97,14 +94,13 @@ const DoctorAssessment = () => {
     if (!user) return toast.error('You must be logged in');
 
     setIsSubmitting(true);
-
     try {
       const payload = {
         patient_name: data.patient_name,
         patient_contact: data.patient_contact || null,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
-        blood_pressure: data.blood_pressure,
+        blood_pressure: data.blood_pressure || null,
         pulse_rate: data.pulse_rate || null,
         respiratory_rate: data.respiratory_rate || null,
         spo2: data.spo2 || null,
@@ -121,6 +117,7 @@ const DoctorAssessment = () => {
         notes: data.notes || null,
         created_by: user.id,
       };
+
       console.log('Payload:', payload);
       const { error } = await supabase.from('assessments').insert(payload);
       if (error) throw error;
@@ -133,6 +130,20 @@ const DoctorAssessment = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Temporary test insert function for new columns
+  const testInsert = async () => {
+    const { error } = await supabase
+      .from('assessments')
+      .insert({
+        patient_name: 'Test',
+        blood_pressure: '120/80',
+        family_social_history: 'Test family history',
+        obstetrics_gyne_history: 'Test obstetrics history',
+        created_by: user?.id || 'test_user',
+      });
+    console.log('Test Insert Error:', error);
   };
 
   return (
@@ -218,7 +229,7 @@ const DoctorAssessment = () => {
                     </FormItem>
                   )}/>
 
-                  {/* All other sections */}
+                  {/* Other Sections */}
                   {[
                     {name: 'history_present_illness', label: 'History of Present Illness', rows: 4},
                     {name: 'obstetrics_gyne_history', label: 'Obstetrics/Gynecology History', rows: 3},
@@ -270,6 +281,11 @@ const DoctorAssessment = () => {
 
                   <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
                     {isSubmitting ? 'Saving...' : 'Save Assessment'}
+                  </Button>
+
+                  {/* Temporary Test Button */}
+                  <Button onClick={testInsert} variant="secondary" className="mt-4">
+                    Test Insert New Columns
                   </Button>
                 </form>
               </Form>
