@@ -24,6 +24,7 @@ const assessmentSchema = z.object({
   patient_name: z.string().min(1, 'Patient name is required'),
   patient_age: z.string().optional(),
   patient_gender: z.string().optional(),
+  patient_contact: z.string().optional(),
   chief_complaint: z.string().min(1, 'Chief complaint is required'),
   history_present_illness: z.string().optional(),
   past_medical_history: z.string().optional(),
@@ -57,6 +58,7 @@ const DoctorAssessment = () => {
       patient_name: '',
       patient_age: '',
       patient_gender: '',
+      patient_contact: '',
       chief_complaint: '',
       history_present_illness: '',
       past_medical_history: '',
@@ -106,6 +108,7 @@ const DoctorAssessment = () => {
         patient_name: data.patient_name,
         patient_age: data.patient_age ? parseInt(data.patient_age) : null,
         patient_gender: data.patient_gender || null,
+        patient_contact: data.patient_contact || null,
         chief_complaint: data.chief_complaint,
         history_present_illness: data.history_present_illness || null,
         past_medical_history: data.past_medical_history || null,
@@ -162,7 +165,7 @@ const DoctorAssessment = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Patient Information */}
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="patient_name"
@@ -171,6 +174,19 @@ const DoctorAssessment = () => {
                           <FormLabel>Patient Name *</FormLabel>
                           <FormControl>
                             <Input placeholder="Enter patient name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="patient_contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Phone or email" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -215,7 +231,7 @@ const DoctorAssessment = () => {
 
                   {/* Vital Signs (optional) */}
                   <div className="grid gap-4 md:grid-cols-4">
-                    {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
+                  {['blood_pressure', 'pulse_rate', 'respiratory_rate', 'spo2'].map((fieldName) => (
                       <FormField
                         key={fieldName}
                         control={form.control}
@@ -224,7 +240,7 @@ const DoctorAssessment = () => {
                           <FormItem>
                             <FormLabel>{fieldName.replace('_', ' ').toUpperCase()}</FormLabel>
                             <FormControl>
-                              <Input placeholder={fieldName.replace('_', ' ')} {...field} />
+                              <Input placeholder={fieldName.replace('_', ' ')} {...field} value={field.value as string || ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -267,7 +283,7 @@ const DoctorAssessment = () => {
                         <FormItem>
                           <FormLabel>{section.label}</FormLabel>
                           <FormControl>
-                            <Textarea rows={section.rows} {...field} />
+                            <Textarea rows={section.rows} {...field} value={field.value as string || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
