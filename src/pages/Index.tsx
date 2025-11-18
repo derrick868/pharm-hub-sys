@@ -41,14 +41,14 @@ const Index = () => {
           <div className="p-6 bg-primary/20 rounded-full">
             <img
               src={amikoLogo}
-              alt="AMIKO PLAS MEDICAL CLINIC logo"
+              alt="HEKODA MEDICURE CLINIC logo"
               className="h-16 w-16 object-contain rounded-full"
             />
           </div>
         </div>
 
         {/* Clinic Name and Description */}
-        <h1 className="text-5xl font-bold mb-4">AMIKO PLAS MEDICAL CLINIC</h1>
+        <h1 className="text-5xl font-bold mb-4">HEKODA MEDICURE CLINIC</h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
           Providing quality healthcare and pharmaceutical services with compassion and efficiency.
         </p>
